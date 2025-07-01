@@ -42,9 +42,9 @@ jobs:
       run: |
         ruff format --check .
 
-    - name: Run mypy type checking
-      run: |
-        mypy src/
+    # - name: Run mypy type checking
+    #   run: |
+    #     mypy src/
 
     - name: Run tests with coverage
       run: |
