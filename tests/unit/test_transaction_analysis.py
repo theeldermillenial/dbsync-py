@@ -119,10 +119,13 @@ class TestTransactionAnalysisQueries:
         ]
 
         result = TransactionAnalysisQueries.get_transaction_inputs_outputs(
-            mock_session, "abc123def456"
+            mock_session, "abc123def456789012345678901234567890123456789012345678901234"
         )
 
-        assert result["transaction_hash"] == "abc123def456"
+        assert (
+            result["transaction_hash"]
+            == "abc123def456789012345678901234567890123456789012345678901234"
+        )
         assert result["found"] is True
         assert result["fee"] == 180000
         assert result["fee_ada"] == 0.18
@@ -139,10 +142,14 @@ class TestTransactionAnalysisQueries:
         mock_session.execute.return_value.first.return_value = None
 
         result = TransactionAnalysisQueries.get_transaction_inputs_outputs(
-            mock_session, "notfound123"
+            mock_session,
+            "a1b2c3d4e5f67890123456789012345678901234567890123456789012345678",
         )
 
-        assert result["transaction_hash"] == "notfound123"
+        assert (
+            result["transaction_hash"]
+            == "a1b2c3d4e5f67890123456789012345678901234567890123456789012345678"
+        )
         assert result["found"] is False
         assert result["inputs"] == []
         assert result["outputs"] == []
@@ -155,7 +162,9 @@ class TestTransactionAnalysisQueries:
         # Mock transaction results
         tx_rows = [
             Mock(
-                hash_=bytes.fromhex("abc123"),
+                hash_=bytes.fromhex(
+                    "abc123def456789012345678901234567890123456789012345678901234"
+                ),
                 block_no=1000,
                 time=Mock(isoformat=lambda: "2023-01-01T12:00:00"),
                 fee=180000,
@@ -163,7 +172,9 @@ class TestTransactionAnalysisQueries:
                 output_index=0,
             ),
             Mock(
-                hash_=bytes.fromhex("def456"),
+                hash_=bytes.fromhex(
+                    "def456abc123789012345678901234567890123456789012345678901234"
+                ),
                 block_no=999,
                 time=Mock(isoformat=lambda: "2023-01-01T11:00:00"),
                 fee=170000,
@@ -181,7 +192,10 @@ class TestTransactionAnalysisQueries:
         assert result["address"] == "addr1test"
         assert result["transaction_count"] == 2
         assert len(result["transactions"]) == 2
-        assert result["transactions"][0]["hash"] == "abc123"
+        assert (
+            result["transactions"][0]["hash"]
+            == "abc123def456789012345678901234567890123456789012345678901234"
+        )
         assert result["transactions"][0]["block_number"] == 1000
         assert result["transactions"][0]["fee_ada"] == 0.18
 
@@ -227,14 +241,18 @@ class TestTransactionAnalysisQueries:
         # Mock large transaction data
         large_tx_rows = [
             Mock(
-                hash_=bytes.fromhex("large1"),
+                hash_=bytes.fromhex(
+                    "a1b2c3d4e5f67890123456789012345678901234567890123456789012345678"
+                ),
                 time=Mock(isoformat=lambda: "2023-01-01T12:00:00"),
                 block_no=1000,
                 total_output=50000000000,  # 50,000 ADA
                 output_count=2,
             ),
             Mock(
-                hash_=bytes.fromhex("large2"),
+                hash_=bytes.fromhex(
+                    "b2c3d4e5f67890123456789012345678901234567890123456789012345678a1"
+                ),
                 time=Mock(isoformat=lambda: "2023-01-01T11:00:00"),
                 block_no=999,
                 total_output=25000000000,  # 25,000 ADA
@@ -251,7 +269,10 @@ class TestTransactionAnalysisQueries:
         assert result["min_ada_threshold"] == 1000.0
         assert result["transaction_count"] == 2
         assert len(result["transactions"]) == 2
-        assert result["transactions"][0]["hash"] == "large1"
+        assert (
+            result["transactions"][0]["hash"]
+            == "a1b2c3d4e5f67890123456789012345678901234567890123456789012345678"
+        )
         assert result["transactions"][0]["total_output_ada"] == 50000.0
 
     def test_get_transaction_size_distribution(self):

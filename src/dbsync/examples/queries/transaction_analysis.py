@@ -169,7 +169,7 @@ class TransactionAnalysisQueries:
             )
             .where(
                 and_(
-                    Address.address == address,
+                    Address.view == address,
                     TransactionInput.id_.is_(None),  # Not spent
                 )
             )
@@ -238,9 +238,7 @@ class TransactionAnalysisQueries:
 
         # Get inputs with their source addresses
         inputs_stmt = (
-            select(
-                TransactionInput.tx_out_index, TransactionOutput.value, Address.address
-            )
+            select(TransactionInput.tx_out_index, TransactionOutput.value, Address.view)
             .select_from(
                 TransactionInput.__table__.join(
                     TransactionOutput.__table__,
@@ -263,7 +261,7 @@ class TransactionAnalysisQueries:
 
         # Get outputs
         outputs_stmt = (
-            select(TransactionOutput.index, TransactionOutput.value, Address.address)
+            select(TransactionOutput.index, TransactionOutput.value, Address.view)
             .select_from(
                 TransactionOutput.__table__.join(
                     Address.__table__, TransactionOutput.address_id == Address.id_
@@ -335,7 +333,7 @@ class TransactionAnalysisQueries:
                 .join(TransactionOutput.__table__)
                 .join(Address.__table__)
             )
-            .where(Address.address == address)
+            .where(Address.view == address)
             .order_by(desc(Block.time))
             .limit(limit)
         )
@@ -613,9 +611,9 @@ def get_comprehensive_transaction_analysis(
         "large_transactions": large_transactions,
         "summary": {
             "total_transactions": fee_stats["tx_count"],
-            "avg_fee_ada": fee_stats["avg_fee"] / 1_000_000
-            if fee_stats["avg_fee"]
-            else 0,
+            "avg_fee_ada": (
+                fee_stats["avg_fee"] / 1_000_000 if fee_stats["avg_fee"] else 0
+            ),
             "peak_hourly_throughput": throughput["peak_hour_transactions"],
             "avg_transaction_size": f"{size_distribution['avg_inputs']:.1f} inputs, {size_distribution['avg_outputs']:.1f} outputs",
         },

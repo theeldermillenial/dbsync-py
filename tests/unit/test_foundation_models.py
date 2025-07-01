@@ -16,14 +16,10 @@ class TestChainMetaModel:
         """Test ChainMeta model creation with basic fields."""
         meta = ChainMeta(
             network_name="mainnet",
-            network_id=1,
-            network_magic=764824073,
             version="13.2.0",
         )
 
         assert meta.network_name == "mainnet"
-        assert meta.network_id == 1
-        assert meta.network_magic == 764824073
         assert meta.version == "13.2.0"
 
     def test_chainmeta_with_timestamps(self):
@@ -33,29 +29,24 @@ class TestChainMetaModel:
         meta = ChainMeta(
             network_name="mainnet",
             start_time=start_time,
-            slot_length=1,
-            slots_per_epoch=432000,
         )
 
         assert meta.start_time == start_time
-        assert meta.slot_length == 1
-        assert meta.slots_per_epoch == 432000
+        assert meta.network_name == "mainnet"
 
-    def test_chainmeta_genesis_hashes(self):
-        """Test ChainMeta with genesis hash fields."""
-        genesis_hash = b"\\x01" * 32
-        byron_hash = b"\\x02" * 32
-        shelley_hash = b"\\x03" * 32
+    def test_chainmeta_simplified_fields(self):
+        """Test ChainMeta with simplified fields available."""
+        start_time = datetime.datetime.now(datetime.UTC)
 
         meta = ChainMeta(
-            genesis_hash=genesis_hash,
-            byron_genesis_hash=byron_hash,
-            shelley_genesis_hash=shelley_hash,
+            network_name="mainnet",
+            version="13.2.0",
+            start_time=start_time,
         )
 
-        assert meta.genesis_hash == genesis_hash
-        assert meta.byron_genesis_hash == byron_hash
-        assert meta.shelley_genesis_hash == shelley_hash
+        assert meta.network_name == "mainnet"
+        assert meta.version == "13.2.0"
+        assert meta.start_time == start_time
 
     def test_is_mainnet_method(self):
         """Test is_mainnet() method logic."""
@@ -63,12 +54,8 @@ class TestChainMetaModel:
         mainnet_meta = ChainMeta(network_name="mainnet")
         assert mainnet_meta.is_mainnet() is True
 
-        # Test with network_id
-        mainnet_meta_id = ChainMeta(network_id=1)
-        assert mainnet_meta_id.is_mainnet() is True
-
         # Test false case
-        testnet_meta = ChainMeta(network_name="testnet", network_id=0)
+        testnet_meta = ChainMeta(network_name="testnet")
         assert testnet_meta.is_mainnet() is False
 
     def test_is_testnet_method(self):
@@ -85,12 +72,8 @@ class TestChainMetaModel:
         preview_meta = ChainMeta(network_name="preview")
         assert preview_meta.is_testnet() is True
 
-        # Test with network_id
-        testnet_meta_id = ChainMeta(network_id=0)
-        assert testnet_meta_id.is_testnet() is True
-
         # Test false case
-        mainnet_meta = ChainMeta(network_name="mainnet", network_id=1)
+        mainnet_meta = ChainMeta(network_name="mainnet")
         assert mainnet_meta.is_testnet() is False
 
     def test_get_network_info_method(self):
@@ -99,8 +82,6 @@ class TestChainMetaModel:
 
         meta = ChainMeta(
             network_name="mainnet",
-            network_id=1,
-            network_magic=764824073,
             start_time=start_time,
             version="13.2.0",
         )
@@ -109,8 +90,6 @@ class TestChainMetaModel:
 
         expected_info = {
             "network_name": "mainnet",
-            "network_id": 1,
-            "network_magic": 764824073,
             "is_mainnet": True,
             "is_testnet": False,
             "start_time": start_time,
@@ -136,22 +115,18 @@ class TestChainMetaModel:
 
         assert "id_" in annotations
         assert "network_name" in annotations
-        assert "network_id" in annotations
-        assert "network_magic" in annotations
         assert "start_time" in annotations
         assert "version" in annotations
 
-    def test_chainmeta_protocol_parameters(self):
-        """Test ChainMeta protocol parameter fields."""
+    def test_chainmeta_minimal_data(self):
+        """Test ChainMeta with minimal data."""
         meta = ChainMeta(
-            protocol_const=1000,
-            slot_length=1,
-            slots_per_epoch=432000,
+            network_name="testnet",
         )
 
-        assert meta.protocol_const == 1000
-        assert meta.slot_length == 1
-        assert meta.slots_per_epoch == 432000
+        assert meta.network_name == "testnet"
+        assert meta.version is None
+        assert meta.start_time is None
 
     def test_chainmeta_repr(self):
         """Test ChainMeta string representation."""
@@ -191,13 +166,8 @@ class TestFoundationModelIntegration:
         # Create instance
         meta = ChainMeta(
             network_name="mainnet",
-            network_id=1,
-            network_magic=764824073,
             version="13.2.0",
             start_time=datetime.datetime.now(datetime.UTC),
-            protocol_const=1000,
-            slot_length=1,
-            slots_per_epoch=432000,
         )
 
         # Test methods
@@ -226,16 +196,14 @@ class TestFoundationModelIntegration:
         assert network_info["is_mainnet"] is False
         assert network_info["is_testnet"] is False
 
-    def test_chainmeta_network_detection_priority(self):
-        """Test network detection priority between name and ID."""
-        # Test case where name and ID might conflict
-        meta = ChainMeta(network_name="testnet", network_id=1)
+    def test_chainmeta_network_detection(self):
+        """Test network detection with network_name only."""
+        # Test testnet detection
+        meta = ChainMeta(network_name="testnet")
 
-        # network_name should take precedence for testnet detection
+        # network_name should work for testnet detection
         assert meta.is_testnet() is True
-
-        # But network_id should still trigger mainnet detection
-        assert meta.is_mainnet() is True
+        assert meta.is_mainnet() is False
 
 
 class TestExtraMigrations:

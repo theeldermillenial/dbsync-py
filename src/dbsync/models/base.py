@@ -53,6 +53,14 @@ class DBSyncBase(SQLModel):
             result.append(char.lower())
         return "".join(result)
 
+    @declared_attr
+    def __table_args__(cls) -> dict:
+        """Common table arguments for all models.
+
+        Allows table redefinition for testing scenarios.
+        """
+        return {"extend_existing": True}
+
     def to_dict(self) -> dict[str, Any]:
         """Convert model to dictionary.
 

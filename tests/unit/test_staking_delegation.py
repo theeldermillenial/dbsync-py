@@ -189,12 +189,12 @@ class TestStakingDelegationQueries:
         mock_reward.total_amount = 2000000  # 2 ADA in lovelace
 
         # Configure execute to return different results for different calls
-        execute_results = [
+        mock_session.execute.return_value.first.side_effect = [
             [mock_stake_addr],  # Stake address lookup
+        ]
+        mock_session.execute.return_value.scalar.side_effect = [
             latest_epoch,  # Latest epoch
         ]
-        mock_session.execute.return_value.first.side_effect = execute_results
-        mock_session.execute.return_value.scalar.side_effect = execute_results
         mock_session.execute.return_value.all.return_value = [mock_reward]
 
         queries = StakingDelegationQueries()

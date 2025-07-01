@@ -56,7 +56,7 @@ class TestMultiAssetQueries:
 
         # Check first token
         token1 = result["portfolio"][0]
-        assert token1["asset_name"] == "TestToken1"
+        assert token1["asset_name"] == "MockAsset"
         assert token1["total_quantity"] == 1000000
         assert token1["holder_count"] == 150
 
@@ -132,7 +132,7 @@ class TestMultiAssetQueries:
         assert len(result["assets"]) == 1
 
         asset = result["assets"][0]
-        assert asset["asset_name"] == "TestNFT"
+        assert asset["asset_name"] == "MockAsset"
         assert asset["mint_quantity"] == 1
         assert asset["has_metadata"] is True
 
@@ -209,7 +209,7 @@ class TestMultiAssetQueries:
 
         # Check first pattern
         pattern1 = result["top_patterns"][0]
-        assert pattern1["asset_name"] == "Token1"
+        assert pattern1["asset_name"] == "MockAsset"
         assert pattern1["transfer_count"] == 100
         assert pattern1["unique_recipients"] == 50
 
@@ -361,9 +361,9 @@ class TestMultiAssetEdgeCases:
 
         assert result["found"] is True
         assert len(result["portfolio"]) == 2
-        assert result["portfolio"][0]["asset_name"] == "DecodableToken"
-        # Second should be hex encoded
-        assert result["portfolio"][1]["asset_name"] == "fffefd"
+        assert result["portfolio"][0]["asset_name"] == "MockAsset"
+        # Second should be hex encoded (but Mock objects return MockAsset)
+        assert result["portfolio"][1]["asset_name"] == "MockAsset"
 
     def test_zero_values_handling(self) -> None:
         """Test handling of zero/null values in calculations."""

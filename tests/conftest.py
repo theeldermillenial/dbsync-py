@@ -173,6 +173,20 @@ async def dbsync_async_session(dbsync_config):
         pytest.skip(f"Async database not available for integration tests: {e}")
 
 
+@pytest.fixture(autouse=True)
+def clear_sqlmodel_metadata():
+    """Clear SQLModel metadata between tests to prevent table redefinition errors."""
+    from sqlmodel import SQLModel
+
+    # Clear all tables from the metadata
+    SQLModel.metadata.clear()
+
+    yield
+
+    # Clean up after test completes
+    SQLModel.metadata.clear()
+
+
 # Pytest configuration
 def pytest_configure(config: pytest.Config) -> None:
     """Configure pytest with custom settings."""

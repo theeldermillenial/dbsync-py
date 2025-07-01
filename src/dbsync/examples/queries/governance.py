@@ -122,9 +122,9 @@ class GovernanceQueries:
                     "status": status,
                     "deposit_lovelace": int(row.deposit or 0),
                     "return_address": row.return_address,
-                    "proposal_time": str(row.proposal_time)
-                    if row.proposal_time
-                    else None,
+                    "proposal_time": (
+                        str(row.proposal_time) if row.proposal_time else None
+                    ),
                     "proposal_epoch": row.proposal_epoch,
                     "ratified_epoch": row.ratified_epoch,
                     "enacted_epoch": row.enacted_epoch,
@@ -263,9 +263,9 @@ class GovernanceQueries:
                     "drep_id": row.drep_id,
                     "drep_hash": row.drep_hash.hex() if row.drep_hash else None,
                     "deposit_lovelace": int(row.deposit or 0),
-                    "registration_time": str(row.registration_time)
-                    if row.registration_time
-                    else None,
+                    "registration_time": (
+                        str(row.registration_time) if row.registration_time else None
+                    ),
                     "registration_epoch": row.registration_epoch,
                     "anchor_url": row.anchor_url,
                     "anchor_hash": row.anchor_hash.hex() if row.anchor_hash else None,
@@ -317,7 +317,6 @@ class GovernanceQueries:
                 CommitteeRegistration.tx_id,
                 CommitteeRegistration.cert_index,
                 CommitteeHash.raw.label("cold_key"),
-                VotingAnchor.url.label("anchor_url"),
                 Block.time.label("registration_time"),
                 Block.epoch_no.label("registration_epoch"),
             )
@@ -325,12 +324,7 @@ class GovernanceQueries:
                 CommitteeRegistration.__table__.join(
                     CommitteeHash.__table__,
                     CommitteeRegistration.cold_key_id == CommitteeHash.id_,
-                )
-                .outerjoin(
-                    VotingAnchor.__table__,
-                    CommitteeRegistration.voting_anchor_id == VotingAnchor.id_,
-                )
-                .join(Block.__table__, CommitteeRegistration.tx_id == Block.id_)
+                ).join(Block.__table__, CommitteeRegistration.tx_id == Block.id_)
             )
             .order_by(desc(CommitteeRegistration.id_))
             .limit(limit)
@@ -400,13 +394,13 @@ class GovernanceQueries:
         # Get overall committee statistics
         committee_stats = session.execute(
             select(
-                func.count(func.distinct(CommitteeMember.cold_key)).label(
+                func.count(func.distinct(CommitteeMember.committee_hash_id)).label(
                     "total_members"
                 ),
-                func.count(func.distinct(CommitteeRegistration.cold_key)).label(
+                func.count(func.distinct(CommitteeRegistration.cold_key_id)).label(
                     "total_registrations"
                 ),
-                func.count(func.distinct(CommitteeDeRegistration.cold_key)).label(
+                func.count(func.distinct(CommitteeDeRegistration.cold_key_id)).label(
                     "total_deregistrations"
                 ),
             )
@@ -472,10 +466,10 @@ class GovernanceQueries:
                 {
                     "id": row.id_,
                     "cold_key": row.cold_key.hex() if row.cold_key else None,
-                    "anchor_url": row.anchor_url,
-                    "registration_time": str(row.registration_time)
-                    if row.registration_time
-                    else None,
+                    "anchor_url": None,  # CommitteeRegistration doesn't support voting anchors
+                    "registration_time": (
+                        str(row.registration_time) if row.registration_time else None
+                    ),
                     "registration_epoch": row.registration_epoch,
                 }
                 for row in committee_registrations
@@ -485,9 +479,11 @@ class GovernanceQueries:
                     "id": row.id_,
                     "cold_key": row.cold_key.hex() if row.cold_key else None,
                     "anchor_url": row.anchor_url,
-                    "deregistration_time": str(row.deregistration_time)
-                    if row.deregistration_time
-                    else None,
+                    "deregistration_time": (
+                        str(row.deregistration_time)
+                        if row.deregistration_time
+                        else None
+                    ),
                     "deregistration_epoch": row.deregistration_epoch,
                 }
                 for row in committee_deregistrations
@@ -502,9 +498,13 @@ class GovernanceQueries:
             ],
             "voting_activity": [
                 {
-                    "committee_member": row.committee_member.hex()
-                    if row.committee_member
-                    else None,
+                    "committee_member": (
+                        row.committee_member.hex()
+                        if isinstance(row.committee_member, bytes)
+                        else str(row.committee_member)
+                        if row.committee_member
+                        else None
+                    ),
                     "vote_count": int(row.vote_count),
                     "vote_type": row.vote_type,
                 }
@@ -629,9 +629,9 @@ class GovernanceQueries:
                     "id": row.id_,
                     "stake_address": row.stake_address,
                     "amount_lovelace": int(row.amount or 0),
-                    "withdrawal_time": str(row.withdrawal_time)
-                    if row.withdrawal_time
-                    else None,
+                    "withdrawal_time": (
+                        str(row.withdrawal_time) if row.withdrawal_time else None
+                    ),
                     "withdrawal_epoch": row.withdrawal_epoch,
                     "proposal_index": row.proposal_index,
                 }
@@ -643,9 +643,9 @@ class GovernanceQueries:
                     "proposal_index": row.index,
                     "total_withdrawal_lovelace": int(row.total_withdrawal or 0),
                     "withdrawal_count": int(row.withdrawal_count),
-                    "proposal_time": str(row.proposal_time)
-                    if row.proposal_time
-                    else None,
+                    "proposal_time": (
+                        str(row.proposal_time) if row.proposal_time else None
+                    ),
                     "proposal_epoch": row.proposal_epoch,
                 }
                 for row in treasury_proposals

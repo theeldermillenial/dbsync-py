@@ -6,7 +6,7 @@ smart contract and script analysis queries.
 
 from typing import Any
 
-from sqlalchemy import and_, desc, func, select
+from sqlalchemy import desc, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
 
@@ -14,6 +14,7 @@ from ...models import (
     Block,
     Redeemer,
     Script,
+    Transaction,
 )
 
 
@@ -28,27 +29,17 @@ class SmartContractsQueries:
         if isinstance(session, AsyncSession):
             raise NotImplementedError("Async version not yet implemented")
 
-        # Base query for scripts
+        # Base query for scripts - simplified since we can't directly link outputs to scripts
         script_stmt = select(
-            Script.hash,
+            Script.hash_,
             Script.type_,
             Script.serialised_size,
-            func.count(TxOut.id_).label("output_count"),
-            func.count(TxIn.id_).label("input_count"),
-        ).select_from(
-            Script.__table__.outerjoin(
-                TxOut.__table__, TxOut.payment_cred == Script.hash
-            ).outerjoin(TxIn.__table__, TxIn.tx_out_id == TxOut.tx_id)
         )
 
         if script_hash:
-            script_stmt = script_stmt.where(Script.hash == script_hash.encode())
+            script_stmt = script_stmt.where(Script.hash_ == bytes.fromhex(script_hash))
 
-        script_stmt = (
-            script_stmt.group_by(Script.hash, Script.type_, Script.serialised_size)
-            .order_by(desc(func.count(TxOut.id_)))
-            .limit(limit)
-        )
+        script_stmt = script_stmt.order_by(desc(Script.serialised_size)).limit(limit)
 
         scripts = session.execute(script_stmt).all()
 
@@ -60,18 +51,20 @@ class SmartContractsQueries:
             }
 
         # Get overall statistics
-        total_scripts = session.execute(select(func.count(Script.hash))).scalar() or 0
+        total_scripts = session.execute(select(func.count(Script.hash_))).scalar() or 0
 
         native_scripts = (
             session.execute(
-                select(func.count(Script.hash)).where(Script.type_ == "timelock")
+                select(func.count(Script.hash_)).where(Script.type_ == "native")
             ).scalar()
             or 0
         )
 
         plutus_scripts = (
             session.execute(
-                select(func.count(Script.hash)).where(Script.type_ == "plutusV1")
+                select(func.count(Script.hash_)).where(
+                    Script.type_.in_(["plutusV1", "plutusV2", "plutusV3"])
+                )
             ).scalar()
             or 0
         )
@@ -80,13 +73,12 @@ class SmartContractsQueries:
         for row in scripts:
             script_list.append(
                 {
-                    "script_hash": row.hash.hex() if row.hash else None,
+                    "script_hash": row.hash_.hex() if row.hash_ else None,
                     "type": row.type_,
                     "size_bytes": int(row.serialised_size or 0),
-                    "output_usage": int(row.output_count or 0),
-                    "input_usage": int(row.input_count or 0),
-                    "total_usage": int(row.output_count or 0)
-                    + int(row.input_count or 0),
+                    "output_usage": 0,  # Not available without payment_cred field
+                    "input_usage": 0,  # Not available without payment_cred field
+                    "total_usage": 0,  # Not available without payment_cred field
                 }
             )
 
@@ -129,21 +121,23 @@ class SmartContractsQueries:
         # Get contract usage patterns
         usage_stmt = (
             select(
-                Script.hash,
+                Script.hash_,
                 Script.type_,
                 func.count(Redeemer.id_).label("execution_count"),
                 func.sum(Redeemer.fee).label("total_fees"),
                 func.avg(Redeemer.fee).label("avg_fee"),
-                func.sum(Redeemer.mem).label("total_memory"),
-                func.sum(Redeemer.steps).label("total_steps"),
+                func.sum(Redeemer.unit_mem).label("total_memory"),
+                func.sum(Redeemer.unit_steps).label("total_steps"),
             )
             .select_from(
-                Redeemer.__table__.join(Tx.__table__, Redeemer.tx_id == Tx.id_)
-                .join(Block.__table__, Tx.block_id == Block.id_)
-                .join(Script.__table__, Redeemer.script_hash == Script.hash)
+                Redeemer.__table__.join(
+                    Transaction.__table__, Redeemer.tx_id == Transaction.id_
+                )
+                .join(Block.__table__, Transaction.block_id == Block.id_)
+                .join(Script.__table__, Redeemer.script_hash == Script.hash_)
             )
             .where(Block.slot_no >= start_slot)
-            .group_by(Script.hash, Script.type_)
+            .group_by(Script.hash_, Script.type_)
             .order_by(desc(func.count(Redeemer.id_)))
             .limit(limit)
         )
@@ -167,7 +161,7 @@ class SmartContractsQueries:
 
             patterns.append(
                 {
-                    "script_hash": row.hash.hex() if row.hash else None,
+                    "script_hash": row.hash_.hex() if row.hash_ else None,
                     "script_type": row.type_,
                     "executions": execution_count,
                     "total_fees": total_fees_script,
@@ -176,12 +170,12 @@ class SmartContractsQueries:
                     "avg_fee_ada": avg_fee / 1_000_000,
                     "total_memory": total_memory,
                     "total_steps": total_steps,
-                    "avg_memory": total_memory / execution_count
-                    if execution_count > 0
-                    else 0,
-                    "avg_steps": total_steps / execution_count
-                    if execution_count > 0
-                    else 0,
+                    "avg_memory": (
+                        total_memory / execution_count if execution_count > 0 else 0
+                    ),
+                    "avg_steps": (
+                        total_steps / execution_count if execution_count > 0 else 0
+                    ),
                 }
             )
 
@@ -193,9 +187,9 @@ class SmartContractsQueries:
             "total_executions": total_executions,
             "total_fees": total_fees,
             "total_fees_ada": total_fees / 1_000_000,
-            "avg_fee_per_execution": total_fees / total_executions
-            if total_executions > 0
-            else 0,
+            "avg_fee_per_execution": (
+                total_fees / total_executions if total_executions > 0 else 0
+            ),
             "patterns": patterns,
         }
 
@@ -209,8 +203,8 @@ class SmartContractsQueries:
 
         # Get script information
         script_info = session.execute(
-            select(Script.hash, Script.type_, Script.serialised_size).where(
-                Script.hash == script_hash.encode()
+            select(Script.hash_, Script.type_, Script.serialised_size).where(
+                Script.hash_ == bytes.fromhex(script_hash)
             )
         ).first()
 
@@ -227,18 +221,18 @@ class SmartContractsQueries:
                 Redeemer.purpose,
                 Redeemer.index,
                 Redeemer.fee,
-                Redeemer.mem,
-                Redeemer.steps,
-                Tx.hash.label("tx_hash"),
+                Redeemer.unit_mem,
+                Redeemer.unit_steps,
+                Transaction.hash_.label("tx_hash"),
                 Block.time.label("block_time"),
                 Block.epoch_no,
             )
             .select_from(
-                Redeemer.__table__.join(Tx.__table__, Redeemer.tx_id == Tx.id_).join(
-                    Block.__table__, Tx.block_id == Block.id_
-                )
+                Redeemer.__table__.join(
+                    Transaction.__table__, Redeemer.tx_id == Transaction.id_
+                ).join(Block.__table__, Transaction.block_id == Block.id_)
             )
-            .where(Redeemer.script_hash == script_hash.encode())
+            .where(Redeemer.script_hash == bytes.fromhex(script_hash))
             .order_by(desc(Block.time))
             .limit(100)
         )
@@ -253,8 +247,8 @@ class SmartContractsQueries:
 
         for row in redeemers:
             fee = int(row.fee or 0)
-            memory = int(row.mem or 0)
-            steps = int(row.steps or 0)
+            memory = int(row.unit_mem or 0)
+            steps = int(row.unit_steps or 0)
 
             total_fee += fee
             total_memory += memory
@@ -295,7 +289,7 @@ class SmartContractsQueries:
             "found": True,
             "script_hash": script_hash,
             "script_info": {
-                "hash": script_info.hash.hex() if script_info.hash else None,
+                "hash": script_info.hash_.hex() if script_info.hash_ else None,
                 "type": script_info.type_,
                 "size_bytes": int(script_info.serialised_size or 0),
             },
@@ -332,90 +326,42 @@ class SmartContractsQueries:
                 "error": "No epoch data available",
             }
 
-        # Get script-locked UTxOs
+        # Get simplified script data - without payment_cred linkage
         script_value_stmt = (
             select(
-                TxOut.payment_cred,
+                Script.hash_,
                 Script.type_.label("script_type"),
-                func.sum(TxOut.value).label("total_value"),
-                func.count(TxOut.id_).label("utxo_count"),
-                func.avg(TxOut.value).label("avg_value"),
-                func.max(TxOut.value).label("max_value"),
+                func.count(Script.id_).label("script_count"),
             )
-            .select_from(
-                TxOut.__table__.join(Tx.__table__, TxOut.tx_id == Tx.id_)
-                .join(Block.__table__, Tx.block_id == Block.id_)
-                .join(Script.__table__, TxOut.payment_cred == Script.hash)
-            )
-            .where(
-                and_(
-                    Block.epoch_no == epoch_no,
-                    TxOut.payment_cred.isnot(None),  # Script-locked outputs
-                )
-            )
-            .group_by(TxOut.payment_cred, Script.type_)
-            .order_by(desc(func.sum(TxOut.value)))
+            .where(Script.id_.isnot(None))
+            .group_by(Script.hash_, Script.type_)
+            .order_by(desc(func.count(Script.id_)))
             .limit(limit)
         )
 
         script_values = session.execute(script_value_stmt).all()
 
-        # Get overall script-locked value statistics
-        total_script_value = (
-            session.execute(
-                select(func.sum(TxOut.value))
-                .select_from(
-                    TxOut.__table__.join(Tx.__table__, TxOut.tx_id == Tx.id_).join(
-                        Block.__table__, Tx.block_id == Block.id_
-                    )
-                )
-                .where(
-                    and_(
-                        Block.epoch_no == epoch_no,
-                        TxOut.payment_cred.isnot(None),
-                    )
-                )
-            ).scalar()
-            or 0
-        )
+        # Get simplified script totals
+        total_script_value = 0  # Not available without payment_cred linkage
+        total_script_utxos = 0  # Not available without payment_cred linkage
 
-        total_script_utxos = (
-            session.execute(
-                select(func.count(TxOut.id_))
-                .select_from(
-                    TxOut.__table__.join(Tx.__table__, TxOut.tx_id == Tx.id_).join(
-                        Block.__table__, Tx.block_id == Block.id_
-                    )
-                )
-                .where(
-                    and_(
-                        Block.epoch_no == epoch_no,
-                        TxOut.payment_cred.isnot(None),
-                    )
-                )
-            ).scalar()
-            or 0
-        )
-
-        # Process script value data
+        # Process simplified script data
         script_values_list = []
         for row in script_values:
-            total_value = int(row.total_value or 0)
-            utxo_count = int(row.utxo_count or 0)
-            avg_value = int(row.avg_value or 0)
-            max_value = int(row.max_value or 0)
+            script_count = int(row.script_count or 0)
 
             script_values_list.append(
                 {
-                    "script_hash": row.payment_cred.hex() if row.payment_cred else None,
+                    "script_hash": row.hash_.hex() if row.hash_ else None,
                     "script_type": row.script_type,
-                    "total_value": total_value,
-                    "total_value_ada": total_value / 1_000_000,
-                    "utxo_count": utxo_count,
-                    "avg_value": avg_value,
-                    "avg_value_ada": avg_value / 1_000_000,
-                    "max_value": max_value,
-                    "max_value_ada": max_value / 1_000_000,
+                    "total_value": 0,  # Not available
+                    "total_value_ada": 0.0,
+                    "utxo_count": 0,  # Not available
+                    "avg_value": 0,
+                    "avg_value_ada": 0.0,
+                    "max_value": 0,
+                    "max_value_ada": 0.0,
+                    "script_count": script_count,
                 }
             )
 
@@ -426,13 +372,16 @@ class SmartContractsQueries:
                 "total_script_locked_value": int(total_script_value),
                 "total_script_locked_value_ada": total_script_value / 1_000_000,
                 "total_script_locked_utxos": int(total_script_utxos),
-                "avg_value_per_utxo": total_script_value / total_script_utxos
-                if total_script_utxos > 0
-                else 0,
-                "avg_value_per_utxo_ada": (total_script_value / total_script_utxos)
-                / 1_000_000
-                if total_script_utxos > 0
-                else 0,
+                "avg_value_per_utxo": (
+                    total_script_value / total_script_utxos
+                    if total_script_utxos > 0
+                    else 0
+                ),
+                "avg_value_per_utxo_ada": (
+                    (total_script_value / total_script_utxos) / 1_000_000
+                    if total_script_utxos > 0
+                    else 0
+                ),
             },
             "scripts_analyzed": len(script_values_list),
             "script_values": script_values_list,
