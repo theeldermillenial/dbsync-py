@@ -1,6 +1,6 @@
 [project]
 name = "dbsync-py"
-version = "1.0.0-dev3"
+version = "1.0.0-dev4"
 description = "Python helper package for interacting with Cardano DB Sync databases"
 readme = "README.md"
 authors = [
@@ -204,7 +204,7 @@ dev = [
 ]
 
 [tool.bumpversion]
-current_version = "1.0.0-dev3"
+current_version = "1.0.0-dev4"
 parse = """(?x)
     (?P<major>\\d+)\\.
     (?P<minor>\\d+)\\.
