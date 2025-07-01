@@ -277,7 +277,7 @@ class TestPerformanceIntegrationWithModels:
             )
             slow_assets.append(asset)
 
-        time.sleep(0.1)  # Artificial delay to simulate regression
+        time.sleep(1)  # Artificial delay to simulate regression
 
         current_metrics = monitor.stop_monitoring()
 
