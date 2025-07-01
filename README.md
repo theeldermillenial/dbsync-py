@@ -4,7 +4,7 @@
 [![Documentation](https://github.com/TheElderMillenial/dbsync-py/actions/workflows/docs.yml/badge.svg)](https://github.com/TheElderMillenial/dbsync-py/actions/workflows/docs.yml)
 [![PyPI version](https://badge.fury.io/py/dbsync-py.svg)](https://badge.fury.io/py/dbsync-py)
 [![Python Support](https://img.shields.io/pypi/pyversions/dbsync-py.svg)](https://pypi.org/project/dbsync-py/)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+[![License](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/mit)
 
 Python helper package for interacting with Cardano DB Sync databases.
 
