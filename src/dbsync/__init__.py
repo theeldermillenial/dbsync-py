@@ -7,7 +7,7 @@ Cardano blockchain data.
 For query examples and implementations, see the dbsync.examples package.
 """
 
-__version__ = "1.0.0-dev1"
+__version__ = "1.0.0-dev2"
 
 # Import configuration utilities
 # Import main modules when they are implemented
