@@ -1,0 +1,153 @@
+# Pre-commit Configuration for dbsync-py
+# Automated code quality checks before commits
+
+repos:
+  # Ruff - Fast Python linter and formatter
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.1
+    hooks:
+      # Linting
+      - id: ruff
+        name: ruff-lint
+        description: "Run Ruff linter"
+        args: [--fix, --exit-non-zero-on-fix]
+        types_or: [python, pyi, jupyter]
+
+      # Formatting
+      - id: ruff-format
+        name: ruff-format
+        description: "Run Ruff formatter"
+        types_or: [python, pyi, jupyter]
+
+  # # MyPy - Static type checking (disabled due to extensive SQLAlchemy type issues)
+  # - repo: https://github.com/pre-commit/mirrors-mypy
+  #   rev: v1.16.1
+  #   hooks:
+  #     - id: mypy
+  #       additional_dependencies: [types-all]
+  #       args: [--config-file=mypy.ini]
+
+  # Built-in pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      # File formatting
+      - id: trailing-whitespace
+        name: trim-whitespace
+        description: "Remove trailing whitespace"
+        args: [--markdown-linebreak-ext=md]
+
+      - id: end-of-file-fixer
+        name: fix-eof
+        description: "Ensure files end with newline"
+
+      - id: mixed-line-ending
+        name: fix-line-endings
+        description: "Fix mixed line endings"
+        args: [--fix=lf]
+
+      # File checks
+      - id: check-yaml
+        name: check-yaml
+        description: "Check yaml files for parseable syntax"
+        exclude: ^mkdocs\.yml$
+
+      - id: check-toml
+        name: check-toml
+        description: "Validate TOML files"
+
+      - id: check-json
+        name: check-json
+        description: "Validate JSON files"
+
+      - id: check-xml
+        name: check-xml
+        description: "Validate XML files"
+
+      # Python-specific checks
+      - id: check-ast
+        name: check-python-ast
+        description: "Check Python AST validity"
+
+      - id: check-builtin-literals
+        name: check-builtin-literals
+        description: "Check for builtin literals"
+
+      - id: check-case-conflict
+        name: check-case-conflict
+        description: "Check for case conflicts"
+
+      - id: check-docstring-first
+        name: check-docstring-first
+        description: "Check docstring placement"
+
+      - id: debug-statements
+        name: check-debug-statements
+        description: "Check for debug statements"
+
+      # Security and secrets
+      - id: detect-private-key
+        name: detect-private-keys
+        description: "Detect private keys"
+
+      # File size and merge conflicts
+      - id: check-added-large-files
+        name: check-large-files
+        description: "Check for large files"
+        args: [--maxkb=1000]
+
+      - id: check-merge-conflict
+        name: check-merge-conflicts
+        description: "Check for merge conflicts"
+
+  # Additional Python quality checks
+  - repo: https://github.com/pycqa/bandit
+    rev: 1.8.5
+    hooks:
+      - id: bandit
+        name: bandit-security
+        description: "Security linting with Bandit"
+        args: [-c, pyproject.toml]
+        additional_dependencies: ["bandit[toml]"]
+        exclude: ^tests/
+
+  # Documentation checks
+  - repo: https://github.com/econchick/interrogate
+    rev: 1.7.0
+    hooks:
+      - id: interrogate
+        name: interrogate-docstrings
+        description: "Check docstring coverage"
+        args: [--config=pyproject.toml]
+        pass_filenames: false
+
+  # Commit message formatting
+  - repo: https://github.com/commitizen-tools/commitizen
+    rev: v4.8.3
+    hooks:
+      - id: commitizen
+        name: commitizen-check
+        description: "Check commit message format"
+        stages: [commit-msg]
+
+# Global configuration
+default_language_version:
+  python: python3.12
+
+# Performance optimization
+default_stages: [pre-commit]
+fail_fast: false
+minimum_pre_commit_version: "3.0.0"
+
+# CI configuration
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false

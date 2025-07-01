@@ -1,0 +1,236 @@
+[project]
+name = "dbsync-py"
+version = "1.0.0-dev9"
+description = "Python helper package for interacting with Cardano DB Sync databases"
+readme = "README.md"
+authors = [
+    { name = "TheElderMillenial", email = "eldermillenial@protonmail.com" }
+]
+license = { text = "Apache-2.0" }
+keywords = ["cardano", "blockchain", "database", "postgresql", "orm", "sqlalchemy"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Database :: Database Engines/Servers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "sqlmodel>=0.0.14",
+    "psycopg[binary,pool]>=3.1.0",
+    "pycardano>=0.10.0",
+    "python-dotenv>=1.0.0",
+    "click>=8.2.1",
+]
+
+[project.optional-dependencies]
+async = [
+    "asyncpg>=0.28.0",
+    "greenlet>=2.0.0",
+]
+docs = [
+    "mkdocs-material>=9.0.0",
+    "mkdocstrings[python]>=0.22.0",
+    "mkdocs-gen-files>=0.5.0",
+    "pymdown-extensions>=10.0.0",
+]
+dev = [
+    "bump-my-version>=1.2.0",
+    "psutil>=7.0.0",
+    "pytest-benchmark>=5.1.0",
+    "requests>=2.32.4",
+    "memory-profiler>=0.61.0",
+    "matplotlib>=3.8.0",
+    "pandas>=2.1.0",
+    "setuptools>=80.9.0",
+    "hypothesis>=6.135.20",
+    "ruff>=0.0.280",
+    "mypy>=1.5.0",
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "pytest-xdist>=3.0.0",
+    "pre-commit>=3.0.0",
+    "coverage[toml]>=7.0.0",
+    "bandit>=1.7.0",
+    "build>=0.10.0",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/TheElderMillenial/dbsync-py"
+"Bug Reports" = "https://github.com/TheElderMillenial/dbsync-py/issues"
+"Source" = "https://github.com/TheElderMillenial/dbsync-py"
+"Documentation" = "https://TheElderMillenial.github.io/dbsync-py/"
+
+[project.scripts]
+dbsync-py = "dbsync.cli:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dbsync"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/src",
+    "/docs",
+    "/tests",
+    "README.md",
+    "LICENSE",
+]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = [
+    "--strict-markers",
+    "--strict-config",
+    "--verbose",
+    "-ra",
+    "-m not slow",
+    "-n", "auto",  # Enable parallel test execution with optimal worker count
+]
+testpaths = ["tests"]
+filterwarnings = [
+    "error",
+    "ignore::UserWarning",
+    "ignore::DeprecationWarning",
+    "ignore::FutureWarning",
+]
+markers = [
+    "unit: Unit tests",
+    "integration: Integration tests",
+    "async_test: Tests requiring async support",
+    "slow: Slow tests that require external resources (database connections, network calls, etc.)",
+    "benchmark: Performance benchmark tests",
+    "performance: Performance tests",
+    "property_based: Property-based tests",
+    "parameterized: Parameterized tests",
+    "governance: Conway era governance tests",
+    "staking: Staking and delegation tests",
+    "scripts: Script and smart contract tests",
+    "assets: Multi-asset tests",
+    "no_performance_monitoring: Disable automatic performance monitoring for this test",
+    "performance_baseline: Mark test for baseline creation",
+    "performance_critical: Mark test as performance-critical (stricter thresholds)",
+    "coverage_analysis: Coverage analysis tests",
+    "quality_gate: Quality gate tests",
+    "trend_analysis: Coverage trend analysis tests",
+]
+asyncio_mode = "auto"
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "*/tests/*",
+    "*/test_*",
+    "*/__pycache__/*",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\bProtocol\\):",
+    "@(abc\\.)?abstractmethod",
+]
+show_missing = true
+precision = 2
+
+[tool.coverage.html]
+directory = "htmlcov"
+
+[tool.ruff]
+# Target Python version
+target-version = "py312"
+line-length = 88
+exclude = [
+    ".git",
+    ".mypy_cache",
+    ".ruff_cache",
+    ".venv",
+    "__pycache__",
+    "build",
+    "dist",
+    "venv",
+]
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "N", "D", "UP", "ANN", "S", "B", "C4", "SIM", "RUF"]
+ignore = [
+    "D100",    # Missing docstring in public module
+    "D104",    # Missing docstring in public package
+    "D107",    # Missing docstring in `__init__`
+    "S101",    # Use of assert (common in tests)
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = [
+    "D", "ANN", "S101", "F841", "B007", "S311", "E501", "S110", "C416", "RUF005", "RUF013",
+    "SIM105", "F403", "SIM102", "S112", "S607", "C401", "S608", "E721", "RUF015", "SIM118",
+    "S106", "S105", "B023"
+]  # Test files can be less strict
+"__init__.py" = ["F401"]
+"src/dbsync/cli/**/*.py" = ["ANN", "E501", "B904", "E402", "D", "F401"]  # CLI modules can be less strict
+"src/dbsync/examples/**/*.py" = ["ANN", "E501", "B904", "D", "F821"]  # Examples can be less strict
+"src/dbsync/utils/**/*.py" = ["ANN001", "ANN401", "E501", "UP038", "UP047"]  # Util type issues
+"src/dbsync/models/**/*.py" = ["E501", "B007", "N805", "ANN204", "RUF022", "ANN201", "B904"]  # Model formatting issues
+"src/dbsync/session/**/*.py" = ["ANN003", "S110", "ANN204", "ANN001"]  # Session kwargs and exception handling
+"src/dbsync/config.py" = ["ANN401"]  # Allow Any for config kwargs
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.bandit]
+exclude_dirs = ["tests", "docs"]
+skips = ["B101", "B110", "B601"]  # Skip assert_used, try_except_pass, and shell_injection tests
+
+[tool.bumpversion]
+current_version = "1.0.0-dev9"
+parse = """(?x)
+    (?P<major>\\d+)\\.
+    (?P<minor>\\d+)\\.
+    (?P<patch>\\d+)
+    (\\-(?P<release>[a-z]+)(?P<dev>\\d+))?
+"""
+serialize = [
+	"{major}.{minor}.{patch}-{release}{dev}",
+	"{major}.{minor}.{patch}",
+]
+search = "{current_version}"
+replace = "{new_version}"
+regex = false
+ignore_missing_version = false
+tag = true
+sign_tags = false
+tag_name = "v{new_version}"
+tag_message = "Bump version: {current_version} → {new_version}"
+allow_dirty = false
+commit = true
+message = "Bump version: {current_version} → {new_version}"
+commit_args = "--no-verify"
+
+[tool.bumpversion.parts.release]
+values = ["dev", "release"]
+optional_value = "release"
+
+[[tool.bumpversion.files]]
+filename = "src/dbsync/__init__.py"
+search = "__version__ = \"{current_version}\""
+replace = "__version__ = \"{new_version}\""
