@@ -2,9 +2,13 @@
 
 ## Requirements
 
-- Python 3.12 or higher
+- Python 3.12 or higher (including Python 3.13)
 - PostgreSQL database with Cardano DB Sync data
 - pip or uv for package management
+
+## Python 3.13 Compatibility
+
+dbsync-py fully supports Python 3.13. We've addressed compatibility issues with the pycardano dependency by configuring pytest to ignore `FutureWarning` messages that occur due to deprecated `functools.partial` usage in Enum definitions within the upstream library. This ensures smooth operation while waiting for upstream fixes.
 
 ## Install from PyPI
 
