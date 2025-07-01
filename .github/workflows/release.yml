@@ -119,6 +119,15 @@ jobs:
         git push
         git push --tags
 
+    - name: Build package
+      run: uv build
+
+    - name: Publish to PyPI
+      env:
+        UV_PUBLISH_USERNAME: __token__
+        UV_PUBLISH_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+      run: uv publish
+
     - name: Reset dev to match master and push
       if: github.ref == 'refs/heads/master'
       run: |
