@@ -26,13 +26,14 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     LargeBinary,
+    Numeric,
     String,
     Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship
 
-from ..utils.types import Hash28Type, Hash32Type, LovelaceType, Word31Type
+from ..utils.types import Hash28Type, Hash32Type, Word31Type
 from .base import DBSyncBase
 
 __all__ = [
@@ -115,15 +116,13 @@ class DrepHash(DBSyncBase, table=True):
         description="Auto-incrementing primary key",
     )
 
-    raw: bytes | None = Field(
-        default=None,
+    raw: bytes = Field(
         sa_column=Column(Hash28Type, unique=True, nullable=False),
         description="Raw DRep credential hash (28 bytes)",
     )
 
-    view: str | None = Field(
-        default=None,
-        sa_column=Column(String(255)),
+    view: str = Field(
+        sa_column=Column(String(255), nullable=False),
         description="Human-readable DRep ID (bech32 encoded)",
     )
 
@@ -171,7 +170,7 @@ class DrepRegistration(DBSyncBase, table=True):
 
     deposit: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(BigInteger),
         description="Registration deposit amount (Lovelace)",
     )
 
@@ -207,19 +206,19 @@ class DrepDistr(DBSyncBase, table=True):
 
     amount: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType, nullable=False),
+        sa_column=Column(BigInteger, nullable=False),
         description="Amount of stake delegated to this DRep (Lovelace)",
     )
 
     epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Word31Type, nullable=False, index=True),
+        sa_column=Column(Integer, nullable=False, index=True),
         description="Epoch when this distribution was calculated",
     )
 
     active_until: int | None = Field(
         default=None,
-        sa_column=Column(Word31Type),
+        sa_column=Column(Integer),
         description="Epoch until which this DRep is considered active",
     )
 
@@ -243,8 +242,7 @@ class CommitteeHash(DBSyncBase, table=True):
         description="Auto-incrementing primary key",
     )
 
-    raw: bytes | None = Field(
-        default=None,
+    raw: bytes = Field(
         sa_column=Column(Hash28Type, unique=True, nullable=False),
         description="Raw committee member credential hash (28 bytes)",
     )
@@ -354,7 +352,7 @@ class Committee(DBSyncBase, table=True):
     gov_action_proposal_id: int | None = Field(
         default=None,
         sa_column=Column(
-            BigInteger, ForeignKey("gov_action_proposal.id"), nullable=False
+            BigInteger, ForeignKey("gov_action_proposal.id")
         ),
         description="Governance action that established this committee",
     )
@@ -436,7 +434,7 @@ class GovActionProposal(DBSyncBase, table=True):
 
     index: int | None = Field(
         default=None,
-        sa_column=Column(Integer, nullable=False),
+        sa_column=Column(BigInteger, nullable=False),
         description="Index of this action within the transaction",
     )
 
@@ -448,7 +446,7 @@ class GovActionProposal(DBSyncBase, table=True):
 
     deposit: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType, nullable=False),
+        sa_column=Column(Numeric, nullable=False),
         description="Deposit amount for this governance action (Lovelace)",
     )
 
@@ -460,7 +458,7 @@ class GovActionProposal(DBSyncBase, table=True):
 
     expiration: int | None = Field(
         default=None,
-        sa_column=Column(Word31Type),
+        sa_column=Column(Integer),
         description="Epoch when this action expires if not ratified",
     )
 
@@ -476,10 +474,10 @@ class GovActionProposal(DBSyncBase, table=True):
         description="Type of governance action",
     )
 
-    description: str | None = Field(
+    description: dict | None = Field(
         default=None,
-        sa_column=Column(Text),
-        description="Optional description of the governance action",
+        sa_column=Column(JSONB, nullable=False),
+        description="Description of the governance action (JSONB)",
     )
 
     param_proposal: int | None = Field(
@@ -490,25 +488,25 @@ class GovActionProposal(DBSyncBase, table=True):
 
     ratified_epoch: int | None = Field(
         default=None,
-        sa_column=Column(Word31Type),
+        sa_column=Column(Integer),
         description="Epoch when this action was ratified (if applicable)",
     )
 
     enacted_epoch: int | None = Field(
         default=None,
-        sa_column=Column(Word31Type),
+        sa_column=Column(Integer),
         description="Epoch when this action was enacted (if applicable)",
     )
 
     dropped_epoch: int | None = Field(
         default=None,
-        sa_column=Column(Word31Type),
+        sa_column=Column(Integer),
         description="Epoch when this action was dropped (if applicable)",
     )
 
     expired_epoch: int | None = Field(
         default=None,
-        sa_column=Column(Word31Type),
+        sa_column=Column(Integer),
         description="Epoch when this action expired (if applicable)",
     )
 
@@ -546,7 +544,7 @@ class TreasuryWithdrawal(DBSyncBase, table=True):
 
     amount: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType, nullable=False),
+        sa_column=Column(Numeric, nullable=False),
         description="Amount to withdraw (Lovelace)",
     )
 
@@ -569,7 +567,7 @@ class Constitution(DBSyncBase, table=True):
     gov_action_proposal_id: int | None = Field(
         default=None,
         sa_column=Column(
-            BigInteger, ForeignKey("gov_action_proposal.id"), nullable=False, index=True
+            BigInteger, ForeignKey("gov_action_proposal.id"), index=True
         ),
         description="Governance action that established this constitution",
     )
@@ -616,8 +614,14 @@ class VotingAnchor(DBSyncBase, table=True):
 
     type_: str | None = Field(
         default=None,
-        sa_column=Column(String(32), name="type"),
+        sa_column=Column(String(32), nullable=False, name="type"),
         description="Type of anchor (action, vote, drep, etc.)",
+    )
+
+    block_id: int | None = Field(
+        default=None,
+        sa_column=Column(BigInteger, ForeignKey("block.id"), nullable=False, index=True),
+        description="Block containing this voting anchor",
     )
 
 
@@ -690,6 +694,12 @@ class VotingProcedure(DBSyncBase, table=True):
         default=None,
         sa_column=Column(BigInteger, ForeignKey("voting_anchor.id")),
         description="Optional voting anchor for vote justification",
+    )
+
+    invalid: int | None = Field(
+        default=None,
+        sa_column=Column(BigInteger),
+        description="Invalid vote indicator",
     )
 
 
@@ -766,13 +776,13 @@ class OffChainVoteData(DBSyncBase, table=True):
 
     json_: dict | None = Field(
         default=None,
-        sa_column=Column(JSONB, name="json"),
+        sa_column=Column(JSONB, nullable=False, name="json"),
         description="JSON metadata content",
     )
 
     bytes_: bytes | None = Field(
         default=None,
-        sa_column=Column(LargeBinary, name="bytes"),
+        sa_column=Column(LargeBinary, nullable=False, name="bytes"),
         description="Raw metadata bytes",
     )
 
@@ -784,7 +794,7 @@ class OffChainVoteData(DBSyncBase, table=True):
 
     language: str | None = Field(
         default=None,
-        sa_column=Column(String(10)),
+        sa_column=Column(String(10), nullable=False),
         description="Language of the metadata content",
     )
 

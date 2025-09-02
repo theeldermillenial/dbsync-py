@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import hashlib
 
-from sqlalchemy import BigInteger, Column, ForeignKey, LargeBinary, String
+from sqlalchemy import BigInteger, Column, ForeignKey, LargeBinary, Numeric, String
 from sqlmodel import Field, Relationship
 
 from ..utils.types import Hash28Type
@@ -77,12 +77,9 @@ class MultiAsset(DBSyncBase, table=True):
     )
     policy: bytes = Field(sa_column=Column(Hash28Type, nullable=False))
     name: bytes = Field(sa_column=Column(LargeBinary, nullable=False))
-    fingerprint: str | None = Field(sa_column=Column(String(64), nullable=True))
+    fingerprint: str = Field(sa_column=Column(String(64), nullable=False))
 
-    def __post_init__(self):
-        """Generate fingerprint if not provided."""
-        if not self.fingerprint and self.policy and self.name is not None:
-            self.fingerprint = generate_cip14_fingerprint(self.policy, self.name)
+    # __post_init__ removed since this is a read-only database model
 
     @property
     def asset_name_hex(self) -> str:
@@ -111,20 +108,20 @@ class MultiAsset(DBSyncBase, table=True):
             raise ImportError("pycardano is required for AssetName conversion")
 
     def to_pycardano_policy_id(self):
-        """Convert to pycardano PolicyID.
+        """Convert to pycardano PolicyId.
 
         Returns:
-            pycardano.PolicyID instance
+            pycardano.PolicyId instance
 
         Raises:
             ImportError: If pycardano is not available
         """
         try:
-            from pycardano import PolicyID
+            from pycardano import PolicyId
 
-            return PolicyID(self.policy)
+            return PolicyId(self.policy)
         except ImportError:
-            raise ImportError("pycardano is required for PolicyID conversion")
+            raise ImportError("pycardano is required for PolicyId conversion")
 
 
 class MaTxMint(DBSyncBase, table=True):
@@ -149,7 +146,7 @@ class MaTxMint(DBSyncBase, table=True):
     id_: int | None = Field(
         default=None, sa_column=Column(BigInteger, primary_key=True, name="id")
     )
-    quantity: int = Field(sa_column=Column(BigInteger, nullable=False))
+    quantity: int = Field(sa_column=Column(Numeric(20, 0), nullable=False))
     tx_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False)
     )
@@ -195,7 +192,7 @@ class MaTxOut(DBSyncBase, table=True):
     id_: int | None = Field(
         default=None, sa_column=Column(BigInteger, primary_key=True, name="id")
     )
-    quantity: int = Field(sa_column=Column(BigInteger, nullable=False))
+    quantity: int = Field(sa_column=Column(Numeric(20, 0), nullable=False))
     tx_out_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("tx_out.id"), nullable=False)
     )

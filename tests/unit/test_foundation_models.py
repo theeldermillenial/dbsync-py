@@ -271,22 +271,17 @@ class TestEventInfo:
 
     def test_event_info_creation(self):
         """Test basic EventInfo model creation."""
-        from datetime import datetime
-
-        event_time = datetime.now()
         event = EventInfo(
-            event_name="db_sync_startup",
-            event_time=event_time,
-            description="Database synchronization service started successfully",
-            severity="INFO",
+            epoch=1,
+            type="db_sync_startup",
+            explanation="Database synchronization service started successfully",
+            tx_id=12345,
         )
 
-        assert event.event_name == "db_sync_startup"
-        assert event.event_time == event_time
-        assert (
-            event.description == "Database synchronization service started successfully"
-        )
-        assert event.severity == "INFO"
+        assert event.epoch == 1
+        assert event.type == "db_sync_startup"
+        assert event.explanation == "Database synchronization service started successfully"
+        assert event.tx_id == 12345
 
     def test_event_info_table_name(self):
         """Test EventInfo table name."""
@@ -298,75 +293,70 @@ class TestEventInfo:
 
         # Check field existence
         assert hasattr(event, "id_")
-        assert hasattr(event, "event_name")
-        assert hasattr(event, "event_time")
-        assert hasattr(event, "description")
-        assert hasattr(event, "severity")
+        assert hasattr(event, "tx_id")
+        assert hasattr(event, "epoch")
+        assert hasattr(event, "type")
+        assert hasattr(event, "explanation")
 
     def test_event_info_with_minimal_data(self):
         """Test EventInfo with minimal required data."""
         event = EventInfo(
-            event_name="test_event",
+            epoch=1,
+            type="test_event",
         )
 
-        assert event.event_name == "test_event"
-        assert event.event_time is None
-        assert event.description is None
-        assert event.severity is None
+        assert event.epoch == 1
+        assert event.type == "test_event"
+        assert event.tx_id is None
+        assert event.explanation is None
 
-    def test_event_info_severity_levels(self):
-        """Test EventInfo with different severity levels."""
-        severities = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+    def test_event_info_different_types(self):
+        """Test EventInfo with different event types."""
+        event_types = ["sync_start", "sync_complete", "error", "warning", "info"]
 
-        for severity in severities:
+        for event_type in event_types:
             event = EventInfo(
-                event_name=f"test_event_{severity.lower()}",
-                severity=severity,
+                epoch=1,
+                type=event_type,
             )
-            assert event.severity == severity
+            assert event.type == event_type
 
     def test_event_info_error_event(self):
         """Test EventInfo for error event."""
-        from datetime import datetime
-
         event = EventInfo(
-            event_name="connection_failure",
-            event_time=datetime.now(),
-            description="Failed to connect to Cardano node: Connection timeout",
-            severity="ERROR",
+            epoch=5,
+            type="connection_failure",
+            explanation="Failed to connect to Cardano node: Connection timeout",
         )
 
-        assert event.event_name == "connection_failure"
-        assert event.severity == "ERROR"
-        assert "Connection timeout" in event.description
+        assert event.type == "connection_failure"
+        assert event.epoch == 5
+        assert "Connection timeout" in event.explanation
 
     def test_event_info_warning_event(self):
         """Test EventInfo for warning event."""
-        from datetime import datetime
-
         event = EventInfo(
-            event_name="sync_lag_detected",
-            event_time=datetime.now(),
-            description="Synchronization is lagging behind by 5 blocks",
-            severity="WARNING",
+            epoch=10,
+            type="sync_lag_detected",
+            explanation="Synchronization is lagging behind by 5 blocks",
         )
 
-        assert event.event_name == "sync_lag_detected"
-        assert event.severity == "WARNING"
-        assert "lagging behind" in event.description
+        assert event.type == "sync_lag_detected"
+        assert event.epoch == 10
+        assert "lagging behind" in event.explanation
 
-    def test_event_info_long_description(self):
-        """Test EventInfo with long description."""
-        long_description = "This is a detailed error description " * 50
+    def test_event_info_long_explanation(self):
+        """Test EventInfo with long explanation."""
+        long_explanation = "This is a detailed error explanation " * 50
         event = EventInfo(
-            event_name="detailed_error",
-            description=long_description,
-            severity="ERROR",
+            epoch=1,
+            type="detailed_error",
+            explanation=long_explanation,
         )
 
-        assert event.event_name == "detailed_error"
-        assert event.description == long_description
-        assert len(event.description) > 1000
+        assert event.type == "detailed_error"
+        assert event.explanation == long_explanation
+        assert len(event.explanation) > 1000
 
 
 # Note: SCHEMA-003 (Core Blockchain Infrastructure Models) tests are in test_blockchain_models.py

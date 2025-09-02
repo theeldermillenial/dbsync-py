@@ -11,17 +11,18 @@ from __future__ import annotations
 from enum import Enum
 
 from sqlalchemy import (
-    JSON,
     BigInteger,
     Column,
     ForeignKey,
     Integer,
     LargeBinary,
+    Numeric,
     String,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship
 
-from ..utils.types import Hash28Type, Hash32Type, LovelaceType
+from ..utils.types import Hash28Type, Hash32Type
 from .base import DBSyncBase
 
 __all__ = [
@@ -96,7 +97,7 @@ class Script(DBSyncBase, table=True):
     )
     type_: str = Field(sa_column=Column(String(20), name="type", nullable=False))
     json_: dict | None = Field(
-        default=None, sa_column=Column(JSON, name="json", nullable=True)
+        default=None, sa_column=Column(JSONB, name="json", nullable=True)
     )
     bytes_: bytes | None = Field(
         default=None, sa_column=Column(LargeBinary, name="bytes", nullable=True)
@@ -181,9 +182,9 @@ class RedeemerData(DBSyncBase, table=True):
     tx_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False)
     )
-    value: dict | None = Field(default=None, sa_column=Column(JSON, nullable=True))
+    value: dict | None = Field(default=None, sa_column=Column(JSONB, nullable=True))
     bytes_: bytes | None = Field(
-        default=None, sa_column=Column(LargeBinary, name="bytes", nullable=True)
+        default=None, sa_column=Column(LargeBinary, name="bytes", nullable=False)
     )
 
     @property
@@ -247,7 +248,7 @@ class Redeemer(DBSyncBase, table=True):
     )
     unit_mem: int = Field(sa_column=Column(BigInteger, nullable=False))
     unit_steps: int = Field(sa_column=Column(BigInteger, nullable=False))
-    fee: int | None = Field(default=None, sa_column=Column(LovelaceType, nullable=True))
+    fee: int | None = Field(default=None, sa_column=Column(Numeric, nullable=True))
     purpose: str = Field(sa_column=Column(String(20), nullable=False))
     index: int = Field(sa_column=Column(Integer, nullable=False))
     script_hash: bytes | None = Field(
@@ -255,7 +256,7 @@ class Redeemer(DBSyncBase, table=True):
     )
     redeemer_data_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("redeemer_data.id"), nullable=True),
+        sa_column=Column(BigInteger, ForeignKey("redeemer_data.id"), nullable=False),
     )
 
     @property
@@ -347,7 +348,7 @@ class CostModel(DBSyncBase, table=True):
     hash_: bytes = Field(
         sa_column=Column(Hash32Type, unique=True, nullable=False, name="hash")
     )
-    costs: dict = Field(sa_column=Column(JSON, nullable=False))
+    costs: dict = Field(sa_column=Column(JSONB, nullable=False))
 
     @property
     def hash_hex(self) -> str:

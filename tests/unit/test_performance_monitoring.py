@@ -39,13 +39,11 @@ class TestPerformanceMonitor:
             sample_interval=0.1,
             enable_memory_tracking=True,
             enable_cpu_tracking=True,
-            enable_io_tracking=False,
         )
 
         assert monitor.sample_interval == 0.1
         assert monitor.enable_memory_tracking is True
         assert monitor.enable_cpu_tracking is True
-        assert monitor.enable_io_tracking is False
         assert monitor._monitoring is False
         assert len(monitor._metrics_history) == 0
 

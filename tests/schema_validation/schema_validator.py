@@ -79,8 +79,6 @@ class SchemaValidator:
         # Base models to exclude from validation
         excluded_base_models = {
             "d_b_sync_base",  # DBSyncBase - abstract base class
-            "network_model",  # NetworkModel - configuration model
-            "timestamped_model",  # TimestampedModel - abstract base class
         }
 
         for name in dir(models_module):

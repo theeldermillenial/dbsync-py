@@ -17,8 +17,6 @@ from .assets import (
 # Import base models that other models depend on
 from .base import (
     DBSyncBase,
-    NetworkModel,
-    TimestampedModel,
 )
 
 # Import blockchain models
@@ -141,8 +139,6 @@ from .treasury import (
 __all__ = [
     # Base models
     "DBSyncBase",
-    "NetworkModel",
-    "TimestampedModel",
     # Foundation models
     "ChainMeta",
     "EventInfo",

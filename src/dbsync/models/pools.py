@@ -14,16 +14,17 @@ from sqlalchemy import (
     BigInteger,
     Column,
     DateTime,
+    Double,
     ForeignKey,
     Integer,
     LargeBinary,
+    Numeric,
     String,
-    Text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field
 
-from ..utils.types import Hash28Type, Hash32Type, LovelaceType
+from ..utils.types import Hash28Type, Hash32Type
 from .base import DBSyncBase
 
 __all__ = [
@@ -65,15 +66,13 @@ class PoolHash(DBSyncBase, table=True):
         description="Auto-incrementing primary key",
     )
 
-    hash_raw: bytes | None = Field(
-        default=None,
-        sa_column=Column(Hash28Type, unique=True, index=True),
+    hash_raw: bytes = Field(
+        sa_column=Column(Hash28Type, unique=True, nullable=False, index=True),
         description="Raw pool hash (28 bytes)",
     )
 
-    view: str | None = Field(
-        default=None,
-        sa_column=Column(String(63)),
+    view: str = Field(
+        sa_column=Column(String(63), nullable=False),
         description="Human-readable pool ID (bech32 encoded)",
     )
 
@@ -95,37 +94,37 @@ class PoolUpdate(DBSyncBase, table=True):
 
     hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
         description="Pool hash ID being updated",
     )
 
     cert_index: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Certificate index within the transaction",
     )
 
     vrf_key_hash: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash32Type),
+        sa_column=Column(Hash32Type, nullable=False),
         description="VRF verification key hash",
     )
 
     pledge: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Pool pledge amount (lovelace)",
     )
 
     reward_addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True),
         description="Reward address for the pool",
     )
 
     active_epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, index=True),
+        sa_column=Column(BigInteger, nullable=False, index=True),
         description="Epoch when the update becomes active",
     )
 
@@ -137,19 +136,26 @@ class PoolUpdate(DBSyncBase, table=True):
 
     margin: float | None = Field(
         default=None,
+        sa_column=Column(Double, nullable=False),
         description="Pool margin (as a fraction, e.g., 0.05 for 5%)",
     )
 
     fixed_cost: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Fixed cost per epoch (lovelace)",
     )
 
     registered_tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False, index=True),
         description="Transaction containing this registration",
+    )
+
+    deposit: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Pool registration deposit (lovelace)",
     )
 
 
@@ -169,25 +175,25 @@ class PoolRetire(DBSyncBase, table=True):
 
     hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
         description="Pool hash ID being retired",
     )
 
     cert_index: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Certificate index within the transaction",
     )
 
     retiring_epoch: int | None = Field(
         default=None,
-        sa_column=Column(Integer, index=True),
+        sa_column=Column(Integer, nullable=False, index=True),
         description="Epoch when the pool will be retired",
     )
 
     announced_tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False, index=True),
         description="Transaction containing this retirement announcement",
     )
 
@@ -208,13 +214,13 @@ class PoolOwner(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True),
         description="Stake address that owns the pool",
     )
 
     pool_update_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_update.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_update.id"), nullable=False, index=True),
         description="Pool update this ownership applies to",
     )
 
@@ -236,7 +242,7 @@ class PoolRelay(DBSyncBase, table=True):
 
     update_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_update.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_update.id"), nullable=False, index=True),
         description="Pool update this relay configuration applies to",
     )
 
@@ -288,25 +294,25 @@ class PoolMetadataRef(DBSyncBase, table=True):
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
         description="Pool this metadata refers to",
     )
 
     url: str | None = Field(
         default=None,
-        sa_column=Column(String(255)),
+        sa_column=Column(String(255), nullable=False),
         description="URL where pool metadata can be fetched",
     )
 
     hash_: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash32Type, name="hash"),
+        sa_column=Column(Hash32Type, nullable=False, name="hash"),
         description="Expected hash of the metadata",
     )
 
     registered_tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False, index=True),
         description="Transaction that registered this metadata reference",
     )
 
@@ -327,37 +333,37 @@ class OffchainPoolData(DBSyncBase, table=True):
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
         description="Pool this metadata belongs to",
     )
 
     ticker_name: str | None = Field(
         default=None,
-        sa_column=Column(String(5)),
+        sa_column=Column(String(5), nullable=False),
         description="Pool ticker name (up to 5 characters)",
     )
 
     hash_: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash32Type, name="hash"),
+        sa_column=Column(Hash32Type, nullable=False, name="hash"),
         description="Hash of the offchain data",
     )
 
     json_: dict | None = Field(
         default=None,
-        sa_column=Column(JSONB, name="json"),
+        sa_column=Column(JSONB, nullable=False, name="json"),
         description="The payload as JSON",
     )
 
     bytes_: bytes | None = Field(
         default=None,
-        sa_column=Column(LargeBinary, name="bytes"),
+        sa_column=Column(LargeBinary, nullable=False, name="bytes"),
         description="Raw bytes of the payload",
     )
 
     pmr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_metadata_ref.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_metadata_ref.id"), nullable=False, index=True),
         description="Pool metadata reference used for fetching",
     )
 
@@ -378,31 +384,31 @@ class OffchainPoolFetchError(DBSyncBase, table=True):
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
         description="Pool for which metadata fetch failed",
     )
 
     fetch_time: datetime | None = Field(
         default=None,
-        sa_column=Column(DateTime(timezone=True)),
+        sa_column=Column(DateTime(timezone=False), nullable=False),
         description="When the fetch was attempted",
     )
 
     pmr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_metadata_ref.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_metadata_ref.id"), nullable=False, index=True),
         description="Pool metadata reference that failed to fetch",
     )
 
     fetch_error: str | None = Field(
         default=None,
-        sa_column=Column(Text),
+        sa_column=Column(String, nullable=False),
         description="Error message describing the fetch failure",
     )
 
     retry_count: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Number of times fetch has been retried",
     )
 
@@ -423,25 +429,25 @@ class ReserveUtxo(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True),
         description="Stake address receiving from reserves",
     )
 
     cert_index: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Certificate index within the transaction",
     )
 
     amount: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Amount transferred from reserves (lovelace)",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False, index=True),
         description="Transaction containing this reserve distribution",
     )
 
@@ -462,36 +468,37 @@ class PoolStat(DBSyncBase, table=True):
 
     pool_hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
         description="Pool for which statistics are calculated",
     )
 
     epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Integer, index=True),
+        sa_column=Column(Integer, nullable=False, index=True),
         description="Epoch number for these statistics",
     )
 
     number_of_blocks: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Numeric, nullable=False),
         description="Number of blocks produced by this pool in the epoch",
     )
 
     number_of_delegators: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Numeric, nullable=False),
         description="Number of delegators to this pool in the epoch",
     )
 
     stake: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Total stake delegated to this pool (lovelace)",
     )
 
     voting_power: float | None = Field(
         default=None,
+        sa_column=Column(Numeric),
         description="Voting power of this pool for governance",
     )
 
@@ -512,13 +519,13 @@ class ReservedPoolTicker(DBSyncBase, table=True):
 
     name: str | None = Field(
         default=None,
-        sa_column=Column(String(32)),
+        sa_column=Column(String(32), nullable=False),
         description="Reserved ticker name",
     )
 
     pool_hash: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash28Type),
+        sa_column=Column(Hash28Type, nullable=False),
         description="Pool hash that owns this reserved ticker",
     )
 
@@ -539,6 +546,6 @@ class DelistedPool(DBSyncBase, table=True):
 
     hash_raw: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash28Type, unique=True, index=True),
+        sa_column=Column(Hash28Type, unique=True, nullable=False, index=True),
         description="Raw hash of the delisted pool",
     )

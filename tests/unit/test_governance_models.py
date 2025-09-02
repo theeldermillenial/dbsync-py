@@ -317,7 +317,7 @@ class TestGovActionProposal:
             return_address=500,
             expiration=350,
             type_=GovActionType.PARAMETER_CHANGE,
-            description="Increase block size limit",
+            description={"title": "Increase block size limit", "summary": "Proposal to increase the block size limit for better throughput"},
         )
 
         assert proposal.id_ == 1
@@ -327,7 +327,7 @@ class TestGovActionProposal:
         assert proposal.return_address == 500
         assert proposal.expiration == 350
         assert proposal.type_ == GovActionType.PARAMETER_CHANGE
-        assert proposal.description == "Increase block size limit"
+        assert proposal.description == {"title": "Increase block size limit", "summary": "Proposal to increase the block size limit for better throughput"}
 
     def test_gov_action_proposal_table_name(self):
         """Test GovActionProposal has correct table name."""
@@ -798,7 +798,7 @@ class TestGovernanceModelsIntegration:
             return_address=500,
             type_=GovActionType.PARAMETER_CHANGE,
             voting_anchor_id=1,  # Would be anchor.id in real scenario
-            description="Increase block size to improve throughput",
+            description={"title": "Increase block size to improve throughput", "rationale": "Better network performance"},
         )
 
         # 3. Create DRep vote

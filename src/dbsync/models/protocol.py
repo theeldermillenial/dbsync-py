@@ -10,10 +10,10 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Any
 
-from sqlalchemy import BigInteger, Column, Enum, ForeignKey, Integer, Numeric
+from sqlalchemy import BigInteger, Column, Double, Enum, ForeignKey, Integer, Numeric
 from sqlmodel import Field
 
-from ..utils.types import Hash32Type, LovelaceType
+from ..utils.types import Hash32Type
 from .base import DBSyncBase
 
 __all__ = [
@@ -54,79 +54,79 @@ class ParamProposal(DBSyncBase, table=True):
 
     min_fee_a: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric),
         description="Proposed minimum fee coefficient A",
     )
 
     min_fee_b: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric),
         description="Proposed minimum fee coefficient B",
     )
 
     max_block_size: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Numeric),
         description="Proposed maximum block size",
     )
 
     max_tx_size: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Numeric),
         description="Proposed maximum transaction size",
     )
 
     max_bh_size: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Numeric),
         description="Proposed maximum block header size",
     )
 
     key_deposit: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric),
         description="Proposed key deposit amount",
     )
 
     pool_deposit: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric),
         description="Proposed pool deposit amount",
     )
 
     max_epoch: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Numeric),
         description="Proposed maximum epoch for pool retirement",
     )
 
     optimal_pool_count: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Numeric),
         description="Proposed optimal number of pools (k parameter)",
     )
 
     influence: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Proposed influence factor (a0 parameter)",
     )
 
     monetary_expand_rate: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Proposed monetary expansion rate (rho parameter)",
     )
 
     treasury_growth_rate: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Proposed treasury growth rate (tau parameter)",
     )
 
     decentralisation: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Proposed decentralisation parameter",
     )
 
@@ -150,13 +150,13 @@ class ParamProposal(DBSyncBase, table=True):
 
     min_utxo_value: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric),
         description="Proposed minimum UTxO value",
     )
 
     min_pool_cost: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric),
         description="Proposed minimum pool cost",
     )
 
@@ -169,43 +169,43 @@ class ParamProposal(DBSyncBase, table=True):
 
     price_mem: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Proposed price per unit of memory",
     )
 
     price_step: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Proposed price per execution step",
     )
 
     max_tx_ex_mem: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Proposed maximum transaction execution memory",
     )
 
     max_tx_ex_steps: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Proposed maximum transaction execution steps",
     )
 
     max_block_ex_mem: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Proposed maximum block execution memory",
     )
 
     max_block_ex_steps: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Proposed maximum block execution steps",
     )
 
     max_val_size: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Proposed maximum value size",
     )
 
@@ -223,8 +223,147 @@ class ParamProposal(DBSyncBase, table=True):
 
     registered_tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False, index=True),
         description="Transaction that registered this proposal",
+    )
+
+    # Conway era governance fields
+    coins_per_utxo_size: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Proposed coins per UTxO size",
+    )
+
+    pvt_motion_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for motion of no confidence",
+    )
+
+    pvt_committee_normal: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for committee normal",
+    )
+
+    pvt_committee_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for committee no confidence",
+    )
+
+    pvt_hard_fork_initiation: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for hard fork initiation",
+    )
+
+    dvt_motion_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for motion of no confidence",
+    )
+
+    dvt_committee_normal: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for committee normal",
+    )
+
+    dvt_committee_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for committee no confidence",
+    )
+
+    dvt_update_to_constitution: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for constitution update",
+    )
+
+    dvt_hard_fork_initiation: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for hard fork initiation",
+    )
+
+    dvt_p_p_network_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter network group",
+    )
+
+    dvt_p_p_economic_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter economic group",
+    )
+
+    dvt_p_p_technical_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter technical group",
+    )
+
+    dvt_p_p_gov_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter governance group",
+    )
+
+    dvt_treasury_withdrawal: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for treasury withdrawal",
+    )
+
+    committee_min_size: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Proposed minimum committee size",
+    )
+
+    committee_max_term_length: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Proposed maximum committee term length",
+    )
+
+    gov_action_lifetime: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Proposed governance action lifetime",
+    )
+
+    gov_action_deposit: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Proposed governance action deposit",
+    )
+
+    drep_deposit: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Proposed DRep deposit amount",
+    )
+
+    drep_activity: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Proposed DRep activity period",
+    )
+
+    pvtpp_security_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for protocol parameter security group",
+    )
+
+    min_fee_ref_script_cost_per_byte: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Proposed minimum fee reference script cost per byte",
     )
 
     def get_proposal_summary(self) -> dict[str, Any]:
@@ -295,85 +434,85 @@ class EpochParam(DBSyncBase, table=True):
 
     epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Integer, unique=True, index=True),
+        sa_column=Column(Integer, unique=True, nullable=False, index=True),
         description="Epoch number",
     )
 
     min_fee_a: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Integer, nullable=False),
         description="Minimum fee coefficient A",
     )
 
     min_fee_b: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Integer, nullable=False),
         description="Minimum fee coefficient B",
     )
 
     max_block_size: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Maximum block size",
     )
 
     max_tx_size: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Maximum transaction size",
     )
 
     max_bh_size: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Maximum block header size",
     )
 
     key_deposit: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Key deposit amount",
     )
 
     pool_deposit: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Pool deposit amount",
     )
 
     max_epoch: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Maximum epoch for pool retirement",
     )
 
     optimal_pool_count: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Optimal number of pools (k parameter)",
     )
 
     influence: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double, nullable=False),
         description="Influence factor (a0 parameter)",
     )
 
     monetary_expand_rate: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double, nullable=False),
         description="Monetary expansion rate (rho parameter)",
     )
 
     treasury_growth_rate: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double, nullable=False),
         description="Treasury growth rate (tau parameter)",
     )
 
     decentralisation: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double, nullable=False),
         description="Decentralisation parameter",
     )
 
@@ -391,25 +530,25 @@ class EpochParam(DBSyncBase, table=True):
 
     protocol_major: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Protocol major version",
     )
 
     protocol_minor: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Protocol minor version",
     )
 
     min_utxo_value: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Minimum UTxO value",
     )
 
     min_pool_cost: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Minimum pool cost",
     )
 
@@ -422,43 +561,43 @@ class EpochParam(DBSyncBase, table=True):
 
     price_mem: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Price per unit of memory",
     )
 
     price_step: Decimal | None = Field(
         default=None,
-        sa_column=Column(Numeric(precision=20, scale=10)),
+        sa_column=Column(Double),
         description="Price per execution step",
     )
 
     max_tx_ex_mem: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Maximum transaction execution memory",
     )
 
     max_tx_ex_steps: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Maximum transaction execution steps",
     )
 
     max_block_ex_mem: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Maximum block execution memory",
     )
 
     max_block_ex_steps: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Maximum block execution steps",
     )
 
     max_val_size: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Maximum value size",
     )
 
@@ -476,8 +615,147 @@ class EpochParam(DBSyncBase, table=True):
 
     block_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("block.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("block.id"), nullable=False, index=True),
         description="Block where these parameters became active",
+    )
+
+    # Conway era governance fields
+    coins_per_utxo_size: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Coins per UTxO size",
+    )
+
+    pvt_motion_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for motion of no confidence",
+    )
+
+    pvt_committee_normal: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for committee normal",
+    )
+
+    pvt_committee_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for committee no confidence",
+    )
+
+    pvt_hard_fork_initiation: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for hard fork initiation",
+    )
+
+    dvt_motion_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for motion of no confidence",
+    )
+
+    dvt_committee_normal: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for committee normal",
+    )
+
+    dvt_committee_no_confidence: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for committee no confidence",
+    )
+
+    dvt_update_to_constitution: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for constitution update",
+    )
+
+    dvt_hard_fork_initiation: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for hard fork initiation",
+    )
+
+    dvt_p_p_network_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter network group",
+    )
+
+    dvt_p_p_economic_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter economic group",
+    )
+
+    dvt_p_p_technical_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter technical group",
+    )
+
+    dvt_p_p_gov_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for protocol parameter governance group",
+    )
+
+    dvt_treasury_withdrawal: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="DRep voting threshold for treasury withdrawal",
+    )
+
+    committee_min_size: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Minimum committee size",
+    )
+
+    committee_max_term_length: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Maximum committee term length",
+    )
+
+    gov_action_lifetime: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Governance action lifetime",
+    )
+
+    gov_action_deposit: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="Governance action deposit",
+    )
+
+    drep_deposit: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="DRep deposit amount",
+    )
+
+    drep_activity: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric),
+        description="DRep activity period",
+    )
+
+    pvtpp_security_group: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Pool voting threshold for protocol parameter security group",
+    )
+
+    min_fee_ref_script_cost_per_byte: Decimal | None = Field(
+        default=None,
+        sa_column=Column(Double),
+        description="Minimum fee reference script cost per byte",
     )
 
     def calculate_min_fee(self, tx_size: int) -> int:
@@ -562,33 +840,33 @@ class RewardRest(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), primary_key=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, primary_key=True),
         description="Stake address receiving the reward",
     )
 
     type_: str | None = Field(
         default=None,
         sa_column=Column(
-            Enum(*REWARD_TYPES, name="rewardtype"), name="type", primary_key=True
+            Enum(*REWARD_TYPES, name="rewardtype"), nullable=False, name="type", primary_key=True
         ),
         description="Type of reward rest calculation",
     )
 
     amount: int | None = Field(
         default=None,
-        sa_column=Column(Numeric),
+        sa_column=Column(Numeric, nullable=False),
         description="Remaining reward amount (lovelace)",
     )
 
     earned_epoch: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True),
+        sa_column=Column(BigInteger, nullable=False, primary_key=True),
         description="Epoch when the reward was earned",
     )
 
     spendable_epoch: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True),
+        sa_column=Column(BigInteger, nullable=False, primary_key=True),
         description="Epoch when the reward becomes spendable",
     )
 

@@ -6,10 +6,10 @@ pot transfers, and ADA distribution tracking.
 
 from __future__ import annotations
 
-from sqlalchemy import BigInteger, Column, ForeignKey, Integer
+from sqlalchemy import BigInteger, Column, ForeignKey, Integer, Numeric
 from sqlmodel import Field
 
-from ..utils.types import Int65Type, LovelaceType, Word31Type, Word63Type
+
 from .base import DBSyncBase
 
 __all__ = [
@@ -51,7 +51,7 @@ class Treasury(DBSyncBase, table=True):
         sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False)
     )
     cert_index: int = Field(sa_column=Column(Integer, nullable=False))
-    amount: int = Field(sa_column=Column(Int65Type, nullable=False))
+    amount: int = Field(sa_column=Column(Numeric, nullable=False))
     tx_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False)
     )
@@ -107,8 +107,8 @@ class PotTransfer(DBSyncBase, table=True):
         default=None, sa_column=Column(BigInteger, primary_key=True, name="id")
     )
     cert_index: int = Field(sa_column=Column(Integer, nullable=False))
-    treasury: int = Field(sa_column=Column(Int65Type, nullable=False))
-    reserves: int = Field(sa_column=Column(Int65Type, nullable=False))
+    treasury: int = Field(sa_column=Column(Numeric, nullable=False))
+    reserves: int = Field(sa_column=Column(Numeric, nullable=False))
     tx_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("tx.id"), nullable=False)
     )
@@ -191,16 +191,16 @@ class AdaPots(DBSyncBase, table=True):
     id_: int | None = Field(
         default=None, sa_column=Column(BigInteger, primary_key=True, name="id")
     )
-    slot_no: int = Field(sa_column=Column(Word63Type, nullable=False))
-    epoch_no: int = Field(sa_column=Column(Word31Type, nullable=False))
-    treasury: int = Field(sa_column=Column(LovelaceType, nullable=False))
-    reserves: int = Field(sa_column=Column(LovelaceType, nullable=False))
-    rewards: int = Field(sa_column=Column(LovelaceType, nullable=False))
-    utxo: int = Field(sa_column=Column(LovelaceType, nullable=False))
-    deposits_stake: int = Field(sa_column=Column(LovelaceType, nullable=False))
-    deposits_drep: int = Field(sa_column=Column(LovelaceType, nullable=False))
-    deposits_proposal: int = Field(sa_column=Column(LovelaceType, nullable=False))
-    fees: int = Field(sa_column=Column(LovelaceType, nullable=False))
+    slot_no: int = Field(sa_column=Column(BigInteger, nullable=False))
+    epoch_no: int = Field(sa_column=Column(Integer, nullable=False))
+    treasury: int = Field(sa_column=Column(Numeric, nullable=False))
+    reserves: int = Field(sa_column=Column(Numeric, nullable=False))
+    rewards: int = Field(sa_column=Column(Numeric, nullable=False))
+    utxo: int = Field(sa_column=Column(Numeric, nullable=False))
+    deposits_stake: int = Field(sa_column=Column(Numeric, nullable=False))
+    deposits_drep: int = Field(sa_column=Column(Numeric, nullable=False))
+    deposits_proposal: int = Field(sa_column=Column(Numeric, nullable=False))
+    fees: int = Field(sa_column=Column(Numeric, nullable=False))
     block_id: int = Field(
         sa_column=Column(BigInteger, ForeignKey("block.id"), nullable=False)
     )

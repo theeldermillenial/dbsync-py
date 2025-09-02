@@ -8,7 +8,19 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, Text
+from sqlalchemy import (
+    BigInteger,
+    Boolean,
+    Column,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    LargeBinary,
+    Numeric,
+    String,
+    Text,
+)
 from sqlmodel import Field, Relationship
 
 from ..utils.types import Hash28Type, Hash32Type, LovelaceType
@@ -33,24 +45,35 @@ class Address(DBSyncBase, table=True):
     Represents Cardano addresses (payment and stake addresses).
     """
 
-    __tablename__ = "address"
+    __tablename__: str = "address"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    hash_: bytes | None = Field(
-        default=None,
-        sa_column=Column(Hash28Type, unique=True, index=True, name="hash"),
-        description="Address hash (28 bytes for payment addresses)",
+    address: str = Field(
+        sa_column=Column(String, nullable=False),
+        description="Human-readable address (bech32 encoded)",
     )
 
-    view: str | None = Field(
+    raw: bytes = Field(
+        sa_column=Column(LargeBinary, nullable=False),
+        description="Raw address bytes",
+    )
+
+    has_script: bool = Field(
+        sa_column=Column(Boolean, nullable=False),
+        description="Whether this address contains a script",
+    )
+
+    payment_cred: bytes | None = Field(
         default=None,
-        sa_column=Column(Text),
-        description="Human-readable address (bech32 encoded)",
+        sa_column=Column(LargeBinary, nullable=True),
+        description="Payment credential hash",
     )
 
     stake_address_id: int | None = Field(
@@ -66,23 +89,23 @@ class StakeAddress(DBSyncBase, table=True):
     Represents Cardano stake addresses used for delegation and rewards.
     """
 
-    __tablename__ = "stake_address"
+    __tablename__: str = "stake_address"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    hash_raw: bytes | None = Field(
-        default=None,
-        sa_column=Column(Hash28Type, unique=True, index=True, name="hash_raw"),
+    hash_raw: bytes = Field(
+        sa_column=Column(Hash28Type, unique=True, index=True, name="hash_raw", nullable=False),
         description="Stake address hash (raw bytes)",
     )
 
-    view: str | None = Field(
-        default=None,
-        sa_column=Column(Text),
+    view: str = Field(
+        sa_column=Column(String, nullable=False),
         description="Human-readable stake address (bech32 encoded)",
     )
 
@@ -99,17 +122,18 @@ class SlotLeader(DBSyncBase, table=True):
     Represents entities that can produce blocks (stake pools).
     """
 
-    __tablename__ = "slot_leader"
+    __tablename__: str = "slot_leader"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    hash_: bytes | None = Field(
-        default=None,
-        sa_column=Column(Hash28Type, unique=True, index=True, name="hash"),
+    hash_: bytes = Field(
+        sa_column=Column(Hash28Type, unique=True, index=True, name="hash", nullable=False),
         description="Slot leader hash (pool ID)",
     )
 
@@ -119,9 +143,8 @@ class SlotLeader(DBSyncBase, table=True):
         description="Reference to pool hash",
     )
 
-    description: str | None = Field(
-        default=None,
-        sa_column=Column(Text),
+    description: str = Field(
+        sa_column=Column(String, nullable=False),
         description="Description of the slot leader",
     )
 
@@ -132,53 +155,48 @@ class Epoch(DBSyncBase, table=True):
     Represents Cardano epochs with their metrics and timing.
     """
 
-    __tablename__ = "epoch"
+    __tablename__: str = "epoch"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    out_sum: int | None = Field(
-        default=None,
-        sa_column=Column(LovelaceType),
+    out_sum: int = Field(
+        sa_column=Column(LovelaceType, nullable=False),
         description="Total output in this epoch (lovelace)",
     )
 
-    fees: int | None = Field(
-        default=None,
-        sa_column=Column(LovelaceType),
+    fees: int = Field(
+        sa_column=Column(LovelaceType, nullable=False),
         description="Total fees collected in this epoch (lovelace)",
     )
 
-    tx_count: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    tx_count: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Number of transactions in this epoch",
     )
 
-    blk_count: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    blk_count: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Number of blocks in this epoch",
     )
 
-    no: int | None = Field(
-        default=None,
-        sa_column=Column(Integer, unique=True, index=True),
+    no: int = Field(
+        sa_column=Column(Integer, unique=True, index=True, nullable=False),
         description="Epoch number",
     )
 
-    start_time: datetime | None = Field(
-        default=None,
-        sa_column=Column(DateTime(timezone=True)),
+    start_time: datetime = Field(
+        sa_column=Column(DateTime(timezone=False), nullable=False),
         description="Epoch start time",
     )
 
-    end_time: datetime | None = Field(
-        default=None,
-        sa_column=Column(DateTime(timezone=True)),
+    end_time: datetime = Field(
+        sa_column=Column(DateTime(timezone=False), nullable=False),
         description="Epoch end time",
     )
 
@@ -189,17 +207,18 @@ class Block(DBSyncBase, table=True):
     Represents Cardano blocks with their metadata and relationships.
     """
 
-    __tablename__ = "block"
+    __tablename__: str = "block"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    hash_: bytes | None = Field(
-        default=None,
-        sa_column=Column(Hash32Type, unique=True, index=True, name="hash"),
+    hash_: bytes = Field(
+        sa_column=Column(Hash32Type, unique=True, index=True, name="hash", nullable=False),
         description="Block hash",
     )
 
@@ -233,39 +252,33 @@ class Block(DBSyncBase, table=True):
         description="Previous block ID",
     )
 
-    slot_leader_id: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger, ForeignKey("slot_leader.id"), index=True),
+    slot_leader_id: int = Field(
+        sa_column=Column(BigInteger, ForeignKey("slot_leader.id"), index=True, nullable=False),
         description="Slot leader who produced this block",
     )
 
-    size: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    size: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Block size in bytes",
     )
 
-    time: datetime | None = Field(
-        default=None,
-        sa_column=Column(DateTime(timezone=True)),
+    time: datetime = Field(
+        sa_column=Column(DateTime(timezone=False), nullable=False),
         description="Block timestamp",
     )
 
-    tx_count: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger),
+    tx_count: int = Field(
+        sa_column=Column(BigInteger, nullable=False),
         description="Number of transactions in this block",
     )
 
-    proto_major: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    proto_major: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Protocol major version",
     )
 
-    proto_minor: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    proto_minor: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Protocol minor version",
     )
 
@@ -277,6 +290,7 @@ class Block(DBSyncBase, table=True):
 
     op_cert: bytes | None = Field(
         default=None,
+        sa_column=Column(LargeBinary),
         description="Operational certificate",
     )
 
@@ -293,77 +307,78 @@ class Transaction(DBSyncBase, table=True):
     Represents Cardano transactions with their basic metadata.
     """
 
-    __tablename__ = "tx"
+    __tablename__: str = "tx"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    hash_: bytes | None = Field(
-        default=None,
-        sa_column=Column(Hash32Type, unique=True, index=True, name="hash"),
+    hash_: bytes = Field(
+        sa_column=Column(Hash32Type, unique=True, index=True, name="hash", nullable=False),
         description="Transaction hash",
     )
 
-    block_id: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger, ForeignKey("block.id"), index=True),
+    block_id: int = Field(
+        sa_column=Column(BigInteger, ForeignKey("block.id"), index=True, nullable=False),
         description="Block containing this transaction",
     )
 
-    block_index: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    block_index: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Index of transaction within the block",
     )
 
-    out_sum: int | None = Field(
-        default=None,
-        sa_column=Column(LovelaceType),
+    out_sum: int = Field(
+        sa_column=Column(LovelaceType, nullable=False),
         description="Total output amount (lovelace)",
     )
 
-    fee: int | None = Field(
-        default=None,
-        sa_column=Column(LovelaceType),
+    fee: int = Field(
+        sa_column=Column(LovelaceType, nullable=False),
         description="Transaction fee (lovelace)",
     )
 
     deposit: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(BigInteger),
         description="Total deposit amount (lovelace)",
     )
 
-    size: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    size: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Transaction size in bytes",
     )
 
     invalid_before: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Invalid before slot",
     )
 
     invalid_hereafter: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(Numeric),
         description="Invalid after slot",
     )
 
-    valid_contract: bool | None = Field(
-        default=None,
+    valid_contract: bool = Field(
+        sa_column=Column(Boolean, nullable=False),
         description="Whether smart contracts in this transaction are valid",
     )
 
-    script_size: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    script_size: int = Field(
+        sa_column=Column(Integer, nullable=False),
         description="Total size of scripts in bytes",
+    )
+
+    treasury_donation: int = Field(
+        default=0,
+        sa_column=Column(LovelaceType, nullable=False, default=0),
+        description="Treasury donation amount (lovelace)",
     )
 
 
@@ -373,29 +388,28 @@ class SchemaVersion(DBSyncBase, table=True):
     Tracks the database schema version for migration purposes.
     """
 
-    __tablename__ = "schema_version"
+    __tablename__: str = "schema_version"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    stage_one: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    stage_one: int = Field(
+        sa_column=Column(BigInteger, nullable=False),
         description="Stage one schema version",
     )
 
-    stage_two: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    stage_two: int = Field(
+        sa_column=Column(BigInteger, nullable=False),
         description="Stage two schema version",
     )
 
-    stage_three: int | None = Field(
-        default=None,
-        sa_column=Column(Integer),
+    stage_three: int = Field(
+        sa_column=Column(BigInteger, nullable=False),
         description="Stage three schema version",
     )
 
@@ -428,29 +442,28 @@ class EpochSyncTime(DBSyncBase, table=True):
     Tracks synchronization timing for epochs.
     """
 
-    __tablename__ = "epoch_sync_time"
+    __tablename__: str = "epoch_sync_time"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    no: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger, unique=True, index=True),
+    no: int = Field(
+        sa_column=Column(BigInteger, unique=True, index=True, nullable=False),
         description="Epoch number",
     )
 
-    seconds: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger),
+    seconds: int = Field(
+        sa_column=Column(BigInteger, nullable=False),
         description="Synchronization time in seconds",
     )
 
-    state: str | None = Field(
-        default=None,
-        sa_column=Column(Text),
+    state: str = Field(
+        sa_column=Column(Enum("lagging", "following", name="syncstatetype"), nullable=False),
         description="Sync state description",
     )
 
@@ -461,23 +474,23 @@ class ReverseIndex(DBSyncBase, table=True):
     Provides reverse indexing capabilities for efficient queries.
     """
 
-    __tablename__ = "reverse_index"
+    __tablename__: str = "reverse_index"
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
+        sa_column=Column(
+            BigInteger, primary_key=True, autoincrement=True, name="id"
+        ),
         description="Auto-incrementing primary key",
     )
 
-    block_id: int | None = Field(
-        default=None,
-        sa_column=Column(BigInteger, ForeignKey("block.id"), index=True),
+    block_id: int = Field(
+        sa_column=Column(BigInteger, ForeignKey("block.id"), index=True, nullable=False),
         description="Block ID for reverse indexing",
     )
 
-    min_ids: str | None = Field(
-        default=None,
-        sa_column=Column(Text),
+    min_ids: str = Field(
+        sa_column=Column(String, nullable=False),
         description="Minimum IDs for reverse indexing",
     )
 

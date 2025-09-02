@@ -50,7 +50,6 @@ def performance_monitor_instance() -> PerformanceMonitor:
         sample_interval=0.05,  # Faster sampling for tests
         enable_memory_tracking=True,
         enable_cpu_tracking=True,
-        enable_io_tracking=True,
     )
 
 

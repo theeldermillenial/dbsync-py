@@ -15,7 +15,6 @@ __version__ = "1.0.0"
 from . import (
     config,
     examples,  # Query examples and patterns
-    queries,  # Available for utilities, examples are separate
     session,
     utils,
 )
@@ -25,7 +24,6 @@ __all__ = [
     "__version__",
     "config",
     "examples",  # Query examples
-    "queries",  # Available for query utilities
     "session",
     "utils",
     # Future exports will be added here

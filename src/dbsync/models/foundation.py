@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, Column, DateTime, String, Text
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlmodel import Field
 
 from .base import DBSyncBase
@@ -35,18 +35,19 @@ class ChainMeta(DBSyncBase, table=True):
         description="Auto-incrementing primary key",
     )
 
-    start_time: datetime | None = Field(
-        default=None,
-        sa_column=Column(DateTime(timezone=True)),
+    start_time: datetime = Field(
+        sa_column=Column(DateTime(timezone=False), nullable=False),
         description="Blockchain start time",
     )
 
-    network_name: str | None = Field(
-        default=None, max_length=64, description="Network name (mainnet, testnet, etc.)"
+    network_name: str = Field(
+        sa_column=Column(String(64), nullable=False),
+        description="Network name (mainnet, testnet, etc.)"
     )
 
-    version: str | None = Field(
-        default=None, max_length=32, description="DB Sync version"
+    version: str = Field(
+        sa_column=Column(String(32), nullable=False),
+        description="DB Sync version"
     )
 
     def is_mainnet(self) -> bool:
@@ -95,15 +96,14 @@ class ExtraMigrations(DBSyncBase, table=True):
         description="Auto-incrementing primary key",
     )
 
-    token: str | None = Field(
-        default=None,
-        sa_column=Column(String(255), unique=True),
+    token: str = Field(
+        sa_column=Column(String(255), unique=True, nullable=False),
         description="Unique token identifying the migration",
     )
 
     description: str | None = Field(
         default=None,
-        sa_column=Column(Text),
+        sa_column=Column(String),
         description="Description of what this migration does",
     )
 
@@ -111,8 +111,8 @@ class ExtraMigrations(DBSyncBase, table=True):
 class EventInfo(DBSyncBase, table=True):
     """Event info model for the event_info table.
 
-    Represents significant system events and their details for monitoring
-    and debugging purposes.
+    Represents blockchain events and their details for monitoring
+    and debugging purposes. Maps to the actual database schema.
     """
 
     __tablename__ = "event_info"
@@ -123,26 +123,24 @@ class EventInfo(DBSyncBase, table=True):
         description="Auto-incrementing primary key",
     )
 
-    event_name: str | None = Field(
+    tx_id: int | None = Field(
         default=None,
-        sa_column=Column(String(255)),
-        description="Name of the event that occurred",
+        sa_column=Column(BigInteger, ForeignKey("tx.id")),
+        description="Transaction ID associated with this event (nullable)",
     )
 
-    event_time: datetime | None = Field(
-        default=None,
-        sa_column=Column(DateTime(timezone=True)),
-        description="When the event occurred",
+    epoch: int = Field(
+        sa_column=Column(Integer, nullable=False),
+        description="Epoch number when the event occurred",
     )
 
-    description: str | None = Field(
-        default=None,
-        sa_column=Column(Text),
-        description="Detailed description of the event",
+    type: str = Field(
+        sa_column=Column(String, nullable=False),
+        description="Type of event that occurred",
     )
 
-    severity: str | None = Field(
+    explanation: str | None = Field(
         default=None,
-        sa_column=Column(String(50)),
-        description="Severity level of the event (INFO, WARNING, ERROR, etc.)",
+        sa_column=Column(String),
+        description="Detailed explanation of the event (nullable)",
     )

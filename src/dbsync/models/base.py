@@ -9,14 +9,11 @@ from datetime import datetime
 from typing import Any
 
 from pydantic import ConfigDict
-from sqlalchemy import Column, DateTime, func
 from sqlalchemy.ext.declarative import declared_attr
-from sqlmodel import Field, SQLModel
+from sqlmodel import SQLModel
 
 __all__ = [
     "DBSyncBase",
-    "NetworkModel",
-    "TimestampedModel",
 ]
 
 
@@ -125,37 +122,5 @@ class DBSyncBase(SQLModel):
         return f"{class_name}({attrs_str})"
 
 
-class TimestampedModel(DBSyncBase):
-    """Base class for models that track creation and update times.
-
-    Provides automatic timestamp tracking for models that need it.
-    """
-
-    created_at: datetime | None = Field(
-        default=None,
-        sa_column=Column(DateTime(timezone=True), server_default=func.now()),
-        description="Record creation timestamp",
-    )
-
-    updated_at: datetime | None = Field(
-        default=None,
-        sa_column=Column(
-            DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-        ),
-        description="Record last update timestamp",
-    )
-
-
-class NetworkModel(DBSyncBase):
-    """Base class for models that are network-specific.
-
-    Provides network identification for multi-network deployments.
-    """
-
-    network_id: int | None = Field(
-        default=None, description="Network identifier (mainnet=1, testnet=0, etc.)"
-    )
-
-    network_magic: int | None = Field(
-        default=None, description="Network magic number for network identification"
-    )
+# TimestampedModel and NetworkModel removed as they were unused
+# and not needed for read-only Cardano DB Sync operations

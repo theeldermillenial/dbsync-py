@@ -282,27 +282,35 @@ class TestProtocolModelsIntegration:
         # Test BigInteger fields
         big_int_fields = [
             "id",
-            "cost_model_id",
+            "cost_model_id", 
             "registered_tx_id",
-            "max_tx_ex_mem",
-            "max_tx_ex_steps",
-            "max_block_ex_mem",
-            "max_block_ex_steps",
-            "max_val_size",
         ]
         for field in big_int_fields:
             if field in table.columns:
                 col = table.columns[field]
                 assert "BIGINT" in str(col.type).upper()
 
-        # Test Integer fields
-        int_fields = [
-            "epoch_no",
+        # Test Numeric fields (execution memory/steps, value size, and size limits)
+        numeric_fields = [
+            "max_tx_ex_mem",
+            "max_tx_ex_steps",
+            "max_block_ex_mem", 
+            "max_block_ex_steps",
+            "max_val_size",
             "max_block_size",
-            "max_tx_size",
+            "max_tx_size", 
             "max_bh_size",
             "max_epoch",
             "optimal_pool_count",
+        ]
+        for field in numeric_fields:
+            if field in table.columns:
+                col = table.columns[field]
+                assert "NUMERIC" in str(col.type).upper()
+
+        # Test Integer fields
+        int_fields = [
+            "epoch_no",
             "protocol_major",
             "protocol_minor",
             "collateral_percent",
@@ -313,8 +321,8 @@ class TestProtocolModelsIntegration:
                 col = table.columns[field]
                 assert "INT" in str(col.type).upper()
 
-        # Test Numeric fields with precision
-        numeric_fields = [
+        # Test Double precision fields
+        double_fields = [
             "influence",
             "monetary_expand_rate",
             "treasury_growth_rate",
@@ -322,10 +330,10 @@ class TestProtocolModelsIntegration:
             "price_mem",
             "price_step",
         ]
-        for field in numeric_fields:
+        for field in double_fields:
             if field in table.columns:
                 col = table.columns[field]
-                assert "NUMERIC" in str(col.type).upper()
+                assert "DOUBLE" in str(col.type).upper()
 
     def test_epoch_param_field_types(self):
         """Test EpochParam field types and constraints."""

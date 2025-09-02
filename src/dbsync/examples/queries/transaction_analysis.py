@@ -169,7 +169,7 @@ class TransactionAnalysisQueries:
             )
             .where(
                 and_(
-                    Address.view == address,
+                    Address.address == address,
                     TransactionInput.id_.is_(None),  # Not spent
                 )
             )
@@ -238,7 +238,7 @@ class TransactionAnalysisQueries:
 
         # Get inputs with their source addresses
         inputs_stmt = (
-            select(TransactionInput.tx_out_index, TransactionOutput.value, Address.view)
+            select(TransactionInput.tx_out_index, TransactionOutput.value, Address.address)
             .select_from(
                 TransactionInput.__table__.join(
                     TransactionOutput.__table__,
@@ -261,7 +261,7 @@ class TransactionAnalysisQueries:
 
         # Get outputs
         outputs_stmt = (
-            select(TransactionOutput.index, TransactionOutput.value, Address.view)
+            select(TransactionOutput.index, TransactionOutput.value, Address.address)
             .select_from(
                 TransactionOutput.__table__.join(
                     Address.__table__, TransactionOutput.address_id == Address.id_
@@ -330,10 +330,10 @@ class TransactionAnalysisQueries:
             )
             .select_from(
                 Transaction.__table__.join(Block.__table__)
-                .join(TransactionOutput.__table__)
+                .join(TransactionOutput.__table__, Transaction.id_ == TransactionOutput.tx_id)
                 .join(Address.__table__)
             )
-            .where(Address.view == address)
+            .where(Address.address == address)
             .order_by(desc(Block.time))
             .limit(limit)
         )
@@ -459,7 +459,7 @@ class TransactionAnalysisQueries:
             )
             .select_from(
                 Transaction.__table__.join(Block.__table__).join(
-                    TransactionOutput.__table__
+                    TransactionOutput.__table__, Transaction.id_ == TransactionOutput.tx_id
                 )
             )
             .group_by(Transaction.id_, Transaction.hash_, Block.time, Block.block_no)

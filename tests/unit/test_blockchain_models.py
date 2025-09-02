@@ -161,16 +161,20 @@ class TestAddressModel:
 
     def test_address_creation(self):
         """Test Address model instantiation."""
-        address_hash = b"\x03" * 28
+        raw_address = b"\x03" * 29  # Raw address bytes
 
         address = Address(
-            hash_=address_hash,
-            view="addr1xyz123...",
+            address="addr1xyz123abc456def789...",
+            raw=raw_address,
+            has_script=False,
+            payment_cred=b"\x04" * 28,
             stake_address_id=42,
         )
 
-        assert address.hash_ == address_hash
-        assert address.view == "addr1xyz123..."
+        assert address.address == "addr1xyz123abc456def789..."
+        assert address.raw == raw_address
+        assert address.has_script is False
+        assert address.payment_cred == b"\x04" * 28
         assert address.stake_address_id == 42
 
     def test_address_table_name(self):
@@ -433,6 +437,19 @@ class TestBlockchainModelEdgeCases:
         tx = Transaction(fee=0)
         assert tx.fee == 0
 
+    def test_transaction_treasury_donation(self):
+        """Test Transaction treasury_donation field."""
+        # Test default value
+        tx = Transaction()
+        assert tx.treasury_donation == 0
+        
+        # Test explicit value
+        tx_with_donation = Transaction(treasury_donation=1000000)  # 1 ADA
+        assert tx_with_donation.treasury_donation == 1000000
+        
+        # Test that field exists in all Transaction instances
+        assert hasattr(tx, "treasury_donation")
+
     def test_epoch_with_zero_counts(self):
         """Test Epoch with zero block/transaction counts."""
         epoch = Epoch(blk_count=0, tx_count=0)
@@ -441,7 +458,11 @@ class TestBlockchainModelEdgeCases:
 
     def test_address_without_stake_address(self):
         """Test Address without associated stake address."""
-        address = Address(hash=b"\x03" * 28)
+        address = Address(
+            address="addr1test123...",
+            raw=b"\x03" * 29,
+            has_script=False
+        )
         assert address.stake_address_id is None
 
     def test_model_string_representations(self):
@@ -450,7 +471,7 @@ class TestBlockchainModelEdgeCases:
             Block(hash=b"\x01" * 32, block_no=1000),
             Transaction(hash=b"\x02" * 32, fee=200000),
             Epoch(no=50, blk_count=21600),
-            Address(hash=b"\x03" * 28, view="addr1xyz"),
+            Address(address="addr1xyz123...", raw=b"\x03" * 29, has_script=False),
             StakeAddress(hash=b"\x04" * 28, view="stake1abc"),
             SlotLeader(hash=b"\x05" * 28, description="Test Pool"),
             SchemaVersion(stage_one=13, stage_two=2, stage_three=0),

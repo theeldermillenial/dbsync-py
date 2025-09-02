@@ -37,11 +37,7 @@ class PerformanceMetrics:
     cpu_time_user: float
     cpu_time_system: float
 
-    # System metrics
-    disk_io_read: int = 0
-    disk_io_write: int = 0
-    network_io_sent: int = 0
-    network_io_recv: int = 0
+    # System metrics (I/O metrics removed for platform compatibility)
 
     # Custom metrics
     custom_metrics: dict[str, Any] = field(default_factory=dict)
@@ -60,10 +56,7 @@ class PerformanceMetrics:
             "cpu_percent": self.cpu_percent,
             "cpu_time_user": self.cpu_time_user,
             "cpu_time_system": self.cpu_time_system,
-            "disk_io_read": self.disk_io_read,
-            "disk_io_write": self.disk_io_write,
-            "network_io_sent": self.network_io_sent,
-            "network_io_recv": self.network_io_recv,
+            # I/O metrics removed for platform compatibility
             "custom_metrics": self.custom_metrics,
         }
 
@@ -80,7 +73,7 @@ class PerformanceMonitor:
     """Main performance monitoring class.
 
     Provides comprehensive monitoring of test execution including memory usage,
-    CPU utilization, I/O operations, and custom metrics collection.
+    CPU utilization, and custom metrics collection.
     """
 
     def __init__(
@@ -88,7 +81,6 @@ class PerformanceMonitor:
         sample_interval: float = 0.1,
         enable_memory_tracking: bool = True,
         enable_cpu_tracking: bool = True,
-        enable_io_tracking: bool = True,
     ):
         """Initialize performance monitor.
 
@@ -96,12 +88,10 @@ class PerformanceMonitor:
             sample_interval: Interval in seconds for sampling system metrics
             enable_memory_tracking: Whether to track memory usage
             enable_cpu_tracking: Whether to track CPU usage
-            enable_io_tracking: Whether to track I/O operations
         """
         self.sample_interval = sample_interval
         self.enable_memory_tracking = enable_memory_tracking
         self.enable_cpu_tracking = enable_cpu_tracking
-        self.enable_io_tracking = enable_io_tracking
 
         self._monitoring = False
         self._monitor_thread: threading.Thread | None = None
@@ -117,9 +107,6 @@ class PerformanceMonitor:
         self._process = psutil.Process()
         self._baseline_memory = self._process.memory_info().rss
         self._baseline_cpu_times = self._process.cpu_times()
-        self._baseline_io = (
-            self._process.io_counters() if self.enable_io_tracking else None
-        )
 
     def start_monitoring(self, test_name: str) -> None:
         """Start monitoring for a specific test.
@@ -139,8 +126,6 @@ class PerformanceMonitor:
         # Reset baseline measurements
         self._baseline_memory = self._process.memory_info().rss
         self._baseline_cpu_times = self._process.cpu_times()
-        if self.enable_io_tracking:
-            self._baseline_io = self._process.io_counters()
 
         # Start monitoring thread
         self._monitor_thread = threading.Thread(target=self._monitor_loop, daemon=True)
@@ -177,13 +162,7 @@ class PerformanceMonitor:
             else 0.0
         )
 
-        # I/O metrics
-        disk_read = disk_write = net_sent = net_recv = 0
-        if self.enable_io_tracking and self._baseline_io:
-            current_io = self._process.io_counters()
-            disk_read = current_io.read_bytes - self._baseline_io.read_bytes
-            disk_write = current_io.write_bytes - self._baseline_io.write_bytes
-            # Network I/O would require additional system-level monitoring
+        # I/O metrics removed due to platform compatibility issues
 
         # Get custom metrics for this session
         custom_metrics = getattr(self, "_current_custom_metrics", {})
@@ -200,10 +179,6 @@ class PerformanceMonitor:
             cpu_percent=cpu_avg,
             cpu_time_user=current_cpu_times.user - self._baseline_cpu_times.user,
             cpu_time_system=current_cpu_times.system - self._baseline_cpu_times.system,
-            disk_io_read=disk_read,
-            disk_io_write=disk_write,
-            network_io_sent=net_sent,
-            network_io_recv=net_recv,
             custom_metrics=custom_metrics.copy(),
         )
 

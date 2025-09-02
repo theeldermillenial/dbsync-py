@@ -14,11 +14,12 @@ from sqlalchemy import (
     Column,
     ForeignKey,
     Integer,
+    Numeric,
     String,
 )
 from sqlmodel import Field, Relationship
 
-from ..utils.types import LovelaceType
+
 from .base import DBSyncBase
 
 __all__ = [
@@ -61,26 +62,32 @@ class StakeRegistration(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
         description="Stake address being registered",
     )
 
     cert_index: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Certificate index within the transaction",
     )
 
     epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Epoch when the registration becomes active",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction containing this registration certificate",
+    )
+
+    deposit: int | None = Field(
+        default=None,
+        sa_column=Column(Numeric, nullable=True),
+        description="Registration deposit amount (lovelace)",
     )
 
 
@@ -101,25 +108,25 @@ class StakeDeregistration(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
         description="Stake address being deregistered",
     )
 
     cert_index: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Certificate index within the transaction",
     )
 
     epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Epoch when the deregistration becomes active",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction containing this deregistration certificate",
     )
 
@@ -147,37 +154,37 @@ class Delegation(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
         description="Stake address delegating",
     )
 
     cert_index: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Certificate index within the transaction",
     )
 
     pool_hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True, nullable=False),
         description="Pool being delegated to",
     )
 
     active_epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Integer, index=True),
+        sa_column=Column(BigInteger, index=True, nullable=False),
         description="Epoch when the delegation becomes active",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction containing this delegation certificate",
     )
 
     slot_no: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger),
+        sa_column=Column(BigInteger, nullable=False),
         description="Slot number when the delegation was submitted",
     )
 
@@ -205,25 +212,25 @@ class DelegationVote(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
         description="Stake address delegating voting power",
     )
 
     cert_index: int | None = Field(
         default=None,
-        sa_column=Column(Integer),
+        sa_column=Column(Integer, nullable=False),
         description="Certificate index within the transaction",
     )
 
     drep_hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("drep_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("drep_hash.id"), index=True, nullable=False),
         description="DRep being delegated to for voting",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction containing this vote delegation certificate",
     )
 
@@ -251,25 +258,25 @@ class EpochStake(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
         description="Stake address with delegated stake",
     )
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True, nullable=False),
         description="Pool receiving the delegated stake",
     )
 
     amount: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Amount of stake delegated (lovelace)",
     )
 
     epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Integer, index=True),
+        sa_column=Column(Integer, index=True, nullable=False),
         description="Epoch number for this stake snapshot",
     )
 
@@ -291,13 +298,13 @@ class EpochStakeProgress(DBSyncBase, table=True):
 
     epoch_no: int | None = Field(
         default=None,
-        sa_column=Column(Integer, unique=True, index=True),
+        sa_column=Column(Integer, unique=True, index=True, nullable=False),
         description="Epoch number being calculated",
     )
 
     completed: bool | None = Field(
         default=None,
-        sa_column=Column(Boolean),
+        sa_column=Column(Boolean, nullable=False),
         description="Whether stake calculation is completed for this epoch",
     )
 
@@ -315,37 +322,37 @@ class Reward(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), primary_key=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), primary_key=True, nullable=False),
         description="Stake address receiving the reward",
     )
 
     type_: str | None = Field(
         default=None,
-        sa_column=Column(String(15), name="type", primary_key=True),
+        sa_column=Column(String(15), name="type", primary_key=True, nullable=False),
         description="Type of reward (leader, member, reserves, treasury, etc.)",
     )
 
     amount: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Reward amount (lovelace)",
     )
 
     earned_epoch: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, primary_key=True),
+        sa_column=Column(BigInteger, primary_key=True, nullable=False),
         description="Epoch when the reward was earned",
     )
 
     spendable_epoch: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, index=True),
+        sa_column=Column(BigInteger, index=True, nullable=False),
         description="Epoch when the reward becomes spendable",
     )
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), primary_key=True),
+        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), primary_key=True, nullable=False),
         description="Pool associated with this reward (for delegation rewards)",
     )
 

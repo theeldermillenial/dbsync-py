@@ -11,15 +11,17 @@ from enum import Enum
 from typing import TYPE_CHECKING
 
 from sqlalchemy import (
-    JSON,
     BigInteger,
     Column,
     ForeignKey,
     LargeBinary,
+    Numeric,
+    String,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlmodel import Field, Relationship
 
-from ..utils.types import Hash28Type, Hash32Type, LovelaceType, TxIndexType, Word64Type
+from ..utils.types import Hash28Type, Hash32Type, TxIndexType
 from .base import DBSyncBase
 
 if TYPE_CHECKING:
@@ -67,19 +69,19 @@ class TransactionInput(DBSyncBase, table=True):
 
     tx_in_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that contains this input",
     )
 
     tx_out_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False),
         description="Transaction output being spent",
     )
 
     tx_out_index: int | None = Field(
         default=None,
-        sa_column=Column(TxIndexType),
+        sa_column=Column(TxIndexType, nullable=False),
         description="Index of the output being spent",
     )
 
@@ -106,19 +108,19 @@ class TransactionOutput(DBSyncBase, table=True):
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that created this output",
     )
 
     index: int | None = Field(
         default=None,
-        sa_column=Column(TxIndexType),
+        sa_column=Column(TxIndexType, nullable=False),
         description="Index of this output within the transaction",
     )
 
     address_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("address.id"), index=True, nullable=False),
         description="Address ID reference",
     )
 
@@ -130,7 +132,7 @@ class TransactionOutput(DBSyncBase, table=True):
 
     value: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="ADA value of this output (in lovelace)",
     )
 
@@ -152,6 +154,12 @@ class TransactionOutput(DBSyncBase, table=True):
         description="Reference script associated with this output",
     )
 
+    consumed_by_tx_id: int | None = Field(
+        default=None,
+        sa_column=Column(BigInteger, ForeignKey("tx.id")),
+        description="Transaction that consumed this output",
+    )
+
 
 class CollateralTransactionInput(DBSyncBase, table=True):
     """Collateral transaction input model for the collateral_tx_in table.
@@ -169,19 +177,19 @@ class CollateralTransactionInput(DBSyncBase, table=True):
 
     tx_in_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that contains this collateral input",
     )
 
     tx_out_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False),
         description="Transaction output being used as collateral",
     )
 
     tx_out_index: int | None = Field(
         default=None,
-        sa_column=Column(TxIndexType),
+        sa_column=Column(TxIndexType, nullable=False),
         description="Index of the output being used as collateral",
     )
 
@@ -202,19 +210,19 @@ class ReferenceTransactionInput(DBSyncBase, table=True):
 
     tx_in_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that references this input",
     )
 
     tx_out_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False),
         description="Transaction output being referenced",
     )
 
     tx_out_index: int | None = Field(
         default=None,
-        sa_column=Column(TxIndexType),
+        sa_column=Column(TxIndexType, nullable=False),
         description="Index of the output being referenced",
     )
 
@@ -235,19 +243,19 @@ class CollateralTransactionOutput(DBSyncBase, table=True):
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that would create this collateral output",
     )
 
     index: int | None = Field(
         default=None,
-        sa_column=Column(TxIndexType),
+        sa_column=Column(TxIndexType, nullable=False),
         description="Index of this collateral output within the transaction",
     )
 
     address_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("address.id"), index=True, nullable=False),
         description="Address ID reference",
     )
 
@@ -259,8 +267,14 @@ class CollateralTransactionOutput(DBSyncBase, table=True):
 
     value: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="ADA value of this collateral output (in lovelace)",
+    )
+
+    multi_assets_descr: str | None = Field(
+        default=None,
+        sa_column=Column(String, nullable=False),
+        description="Multi-asset description for this collateral output",
     )
 
     data_hash: bytes | None = Field(
@@ -298,13 +312,13 @@ class TransactionCbor(DBSyncBase, table=True):
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), unique=True, index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), unique=True, index=True, nullable=False),
         description="Transaction this CBOR data belongs to",
     )
 
     cbor_bytes: bytes | None = Field(
         default=None,
-        sa_column=Column(LargeBinary, name="bytes"),
+        sa_column=Column(LargeBinary, name="bytes", nullable=False),
         description="Raw CBOR-encoded transaction data",
     )
 
@@ -325,25 +339,25 @@ class Datum(DBSyncBase, table=True):
 
     hash_: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash32Type, unique=True, index=True, name="hash"),
+        sa_column=Column(Hash32Type, unique=True, index=True, name="hash", nullable=False),
         description="Hash of the datum",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that first introduced this datum",
     )
 
     value: dict | None = Field(
         default=None,
-        sa_column=Column(JSON),
+        sa_column=Column(JSONB),
         description="JSON representation of the datum value",
     )
 
     cbor_bytes: bytes | None = Field(
         default=None,
-        sa_column=Column(LargeBinary, name="bytes"),
+        sa_column=Column(LargeBinary, name="bytes", nullable=False),
         description="Raw CBOR-encoded datum data",
     )
 
@@ -364,13 +378,13 @@ class ExtraKeyWitness(DBSyncBase, table=True):
 
     hash_: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash28Type, index=True, name="hash"),
+        sa_column=Column(Hash28Type, index=True, name="hash", nullable=False),
         description="Hash of the extra key witness",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that contains this extra key witness",
     )
 
@@ -391,13 +405,13 @@ class Withdrawal(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
         description="Stake address from which rewards are withdrawn",
     )
 
     amount: int | None = Field(
         default=None,
-        sa_column=Column(LovelaceType),
+        sa_column=Column(Numeric, nullable=False),
         description="Amount withdrawn (in lovelace)",
     )
 
@@ -409,7 +423,7 @@ class Withdrawal(DBSyncBase, table=True):
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="Transaction that contains this withdrawal",
     )
 
@@ -432,25 +446,25 @@ class TxMetadata(DBSyncBase, table=True):
 
     key: int | None = Field(
         default=None,
-        sa_column=Column(Word64Type, index=True),
+        sa_column=Column(Numeric, index=True, nullable=False),
         description="The metadata key (a Word64/unsigned 64 bit number)",
     )
 
     json_: dict | None = Field(
         default=None,
-        sa_column=Column(JSON, name="json"),
+        sa_column=Column(JSONB, name="json"),
         description="The JSON payload if it can be decoded as JSON",
     )
 
     cbor_bytes: bytes | None = Field(
         default=None,
-        sa_column=Column(LargeBinary, name="bytes"),
+        sa_column=Column(LargeBinary, name="bytes", nullable=False),
         description="The raw bytes of the payload",
     )
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True),
+        sa_column=Column(BigInteger, ForeignKey("tx.id"), index=True, nullable=False),
         description="The Tx table index of the transaction where this metadata was included",
     )
 
@@ -461,7 +475,12 @@ TransactionInput.transaction = Relationship(
 )
 TransactionInput.transaction_output = Relationship()
 TransactionInput.redeemer = Relationship()
-TransactionOutput.transaction = Relationship()
+TransactionOutput.transaction = Relationship(
+    sa_relationship_kwargs={"foreign_keys": "[TransactionOutput.tx_id]"}
+)
+TransactionOutput.consumed_by_transaction = Relationship(
+    sa_relationship_kwargs={"foreign_keys": "[TransactionOutput.consumed_by_tx_id]"}
+)
 TransactionOutput.inline_datum = Relationship()
 TransactionOutput.reference_script = Relationship()
 

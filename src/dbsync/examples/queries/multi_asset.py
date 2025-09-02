@@ -57,7 +57,7 @@ class MultiAssetQueries:
             MultiAsset.policy,
             MultiAsset.name,
             func.sum(MaTxOut.quantity).label("total_quantity"),
-            func.count(func.distinct(Address.view)).label("holder_count"),
+            func.count(func.distinct(Address.address)).label("holder_count"),
             func.avg(MaTxOut.quantity).label("avg_holding"),
             func.max(MaTxOut.quantity).label("max_holding"),
         ).select_from(
@@ -73,7 +73,7 @@ class MultiAssetQueries:
         )
 
         if address:
-            holdings_stmt = holdings_stmt.where(Address.view == address)
+            holdings_stmt = holdings_stmt.where(Address.address == address)
 
         holdings_stmt = (
             holdings_stmt.group_by(MultiAsset.policy, MultiAsset.name)
@@ -281,7 +281,7 @@ class MultiAssetQueries:
                 func.count(MaTxOut.id_).label("transfer_count"),
                 func.sum(MaTxOut.quantity).label("total_volume"),
                 func.avg(MaTxOut.quantity).label("avg_transfer"),
-                func.count(func.distinct(Address.view)).label("unique_recipients"),
+                func.count(func.distinct(Address.address)).label("unique_recipients"),
                 func.count(func.distinct(Transaction.id_)).label("unique_transactions"),
             )
             .select_from(
