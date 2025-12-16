@@ -4,7 +4,7 @@ This section documents query utilities, common patterns, and helper functions fo
 
 ## Query Utilities
 
-::: dbsync.queries
+::: dbsync.examples.queries
     options:
       show_submodules: true
       show_source: false
