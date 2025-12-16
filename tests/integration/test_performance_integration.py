@@ -55,6 +55,7 @@ class TestPerformanceIntegrationWithModels:
         assert metrics.custom_metrics["blocks_created"] == 100
         assert "blocks_created" in metrics.custom_metrics
 
+    @pytest.mark.no_performance_monitoring
     def test_model_serialization_performance(self, benchmark_performance):
         """Test performance of model serialization."""
         # Create a complex transaction

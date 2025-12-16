@@ -26,7 +26,7 @@ def test_submodule_imports() -> None:
         "dbsync.config",
         "dbsync.session",
         "dbsync.models",
-        "dbsync.queries",
+        "dbsync.examples.queries",
         "dbsync.utils",
     ]
 
