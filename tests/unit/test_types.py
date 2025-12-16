@@ -50,7 +50,7 @@ class TestHash28Type:
     def test_process_bind_param_invalid_length(self):
         """Test processing invalid length input."""
         type_instance = Hash28Type()
-        with pytest.raises(ValueError, match="Hash28 must be exactly .* bytes"):
+        with pytest.raises(ValueError, match=r"Hash28 must be exactly \d+ bytes"):
             type_instance.process_bind_param(bytes([0x12] * 27), None)
 
     def test_process_result_value_bytes(self):
