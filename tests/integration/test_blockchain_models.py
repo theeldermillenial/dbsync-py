@@ -47,17 +47,17 @@ class TestBlockchainModelsIntegration(BaseIntegrationTest):
                 assert isinstance(result.address, str)
                 assert isinstance(result.raw, bytes)
                 assert isinstance(result.has_script, bool)
-                
+
                 # Verify address format (should be bech32)
                 assert len(result.address) > 20  # Reasonable address length
-                
+
                 # Verify raw bytes exist
                 assert len(result.raw) > 0
-                
+
                 # payment_cred can be None
                 if result.payment_cred is not None:
                     assert isinstance(result.payment_cred, bytes)
-                    
+
                 # stake_address_id can be None
                 if result.stake_address_id is not None:
                     assert isinstance(result.stake_address_id, int)
@@ -65,11 +65,13 @@ class TestBlockchainModelsIntegration(BaseIntegrationTest):
 
             else:
                 pytest.skip("No address data available for testing")
-                
+
         except Exception as e:
             pytest.skip(f"Address table not available: {e}")
 
-    def test_transaction_treasury_donation_integration(self, dbsync_session: Session) -> None:
+    def test_transaction_treasury_donation_integration(
+        self, dbsync_session: Session
+    ) -> None:
         """Test Transaction model treasury_donation field with actual database."""
         if dbsync_session is None:
             pytest.skip("Database not available")
@@ -82,20 +84,21 @@ class TestBlockchainModelsIntegration(BaseIntegrationTest):
                 for result in results:
                     # Verify treasury_donation field exists
                     assert hasattr(result, "treasury_donation")
-                    
+
                     # Verify it's a numeric type (lovelace amount) - could be int or Decimal
                     from decimal import Decimal
+
                     assert isinstance(result.treasury_donation, (int, Decimal))
-                    
+
                     # Verify it's non-negative (donations can't be negative)
                     assert result.treasury_donation >= 0
-                    
+
                     # Most transactions should have 0 treasury donation
                     # (treasury donations are rare)
-                    
+
             else:
                 pytest.skip("No transaction data available for testing")
-                
+
         except Exception as e:
             pytest.skip(f"Transaction table not available: {e}")
 
@@ -111,30 +114,30 @@ class TestBlockchainModelsIntegration(BaseIntegrationTest):
             if result:
                 # Verify all stage fields exist
                 assert hasattr(result, "stage_one")
-                assert hasattr(result, "stage_two") 
+                assert hasattr(result, "stage_two")
                 assert hasattr(result, "stage_three")
-                
+
                 # Verify they can handle large integers (BigInteger range)
                 if result.stage_one is not None:
                     assert isinstance(result.stage_one, int)
                     assert result.stage_one >= 0
-                    
+
                 if result.stage_two is not None:
                     assert isinstance(result.stage_two, int)
                     assert result.stage_two >= 0
-                    
+
                 if result.stage_three is not None:
                     assert isinstance(result.stage_three, int)
                     assert result.stage_three >= 0
-                    
+
                 # Test version string method
                 version_str = str(result)
                 assert isinstance(version_str, str)
                 assert "." in version_str  # Should be dot-separated
-                
+
             else:
                 pytest.skip("No schema version data available for testing")
-                
+
         except Exception as e:
             pytest.skip(f"Schema version table not available: {e}")
 
@@ -147,30 +150,36 @@ class TestBlockchainModelsIntegration(BaseIntegrationTest):
             # Test Address -> StakeAddress relationship
             stmt = select(Address).where(Address.stake_address_id.is_not(None)).limit(1)
             address = dbsync_session.exec(stmt).first()
-            
+
             if address and address.stake_address_id:
                 # Verify we can find the related stake address
-                stake_stmt = select(StakeAddress).where(StakeAddress.id_ == address.stake_address_id)
+                stake_stmt = select(StakeAddress).where(
+                    StakeAddress.id_ == address.stake_address_id
+                )
                 stake_address = dbsync_session.exec(stake_stmt).first()
-                
+
                 if stake_address:
                     assert stake_address.id_ == address.stake_address_id
                     assert isinstance(stake_address.hash_raw, bytes)
                     assert isinstance(stake_address.view, str)
-                    
-            # Test Block -> Transaction relationship  
+
+            # Test Block -> Transaction relationship
             stmt = select(Block).limit(1)
             block = dbsync_session.exec(stmt).first()
-            
+
             if block:
                 # Verify we can find transactions in this block
-                tx_stmt = select(Transaction).where(Transaction.block_id == block.id_).limit(1)
+                tx_stmt = (
+                    select(Transaction)
+                    .where(Transaction.block_id == block.id_)
+                    .limit(1)
+                )
                 transaction = dbsync_session.exec(tx_stmt).first()
-                
+
                 if transaction:
                     assert transaction.block_id == block.id_
                     assert hasattr(transaction, "treasury_donation")
-                    
+
         except Exception as e:
             pytest.skip(f"Relationship testing failed: {e}")
 
@@ -187,23 +196,25 @@ class TestBlockchainModelsIntegration(BaseIntegrationTest):
                 # Verify old fields are gone
                 assert not hasattr(result, "hash_")
                 assert not hasattr(result, "view")  # This is now "address"
-                
+
                 # Verify new fields exist
                 assert hasattr(result, "address")  # New field
-                assert hasattr(result, "raw")      # New field
+                assert hasattr(result, "raw")  # New field
                 assert hasattr(result, "has_script")  # New field
-                
+
         except Exception as e:
             pytest.skip(f"Address field verification failed: {e}")
 
-    def test_all_blockchain_models_query_successfully(self, dbsync_session: Session) -> None:
+    def test_all_blockchain_models_query_successfully(
+        self, dbsync_session: Session
+    ) -> None:
         """Test that all blockchain models can be queried without errors."""
         if dbsync_session is None:
             pytest.skip("Database not available")
 
         models_to_test = [
             (Address, "address"),
-            (StakeAddress, "stake_address"), 
+            (StakeAddress, "stake_address"),
             (Block, "block"),
             (Transaction, "tx"),
             (Epoch, "epoch"),
@@ -215,16 +226,16 @@ class TestBlockchainModelsIntegration(BaseIntegrationTest):
             try:
                 # Verify table exists
                 assert self.verify_table_exists(dbsync_session, table_name)
-                
+
                 # Verify we can query without errors
                 stmt = select(model_class).limit(1)
                 result = dbsync_session.exec(stmt).first()
-                
+
                 # If there's data, verify basic properties
                 if result:
                     assert hasattr(result, "id_")
                     assert result.id_ is not None
                     assert isinstance(result.id_, int)
-                    
+
             except Exception as e:
                 pytest.fail(f"Model {model_class.__name__} query failed: {e}")

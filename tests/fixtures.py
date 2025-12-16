@@ -434,7 +434,10 @@ def sample_gov_action_proposal(sample_transaction, sample_stake_address):
         dropped_epoch=None,
         expired_epoch=None,
         type_="ParameterChange",
-        description={"title": "Test governance action", "summary": "A test governance action for testing purposes"},
+        description={
+            "title": "Test governance action",
+            "summary": "A test governance action for testing purposes",
+        },
         param_proposal=random.randint(1, 100) if random.choice([True, False]) else None,
     )
 

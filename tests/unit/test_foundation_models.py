@@ -280,7 +280,9 @@ class TestEventInfo:
 
         assert event.epoch == 1
         assert event.type == "db_sync_startup"
-        assert event.explanation == "Database synchronization service started successfully"
+        assert (
+            event.explanation == "Database synchronization service started successfully"
+        )
         assert event.tx_id == 12345
 
     def test_event_info_table_name(self):

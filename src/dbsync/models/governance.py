@@ -351,9 +351,7 @@ class Committee(DBSyncBase, table=True):
 
     gov_action_proposal_id: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, ForeignKey("gov_action_proposal.id")
-        ),
+        sa_column=Column(BigInteger, ForeignKey("gov_action_proposal.id")),
         description="Governance action that established this committee",
     )
 
@@ -566,9 +564,7 @@ class Constitution(DBSyncBase, table=True):
 
     gov_action_proposal_id: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, ForeignKey("gov_action_proposal.id"), index=True
-        ),
+        sa_column=Column(BigInteger, ForeignKey("gov_action_proposal.id"), index=True),
         description="Governance action that established this constitution",
     )
 
@@ -620,7 +616,9 @@ class VotingAnchor(DBSyncBase, table=True):
 
     block_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("block.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("block.id"), nullable=False, index=True
+        ),
         description="Block containing this voting anchor",
     )
 

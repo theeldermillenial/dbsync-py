@@ -238,7 +238,9 @@ class TransactionAnalysisQueries:
 
         # Get inputs with their source addresses
         inputs_stmt = (
-            select(TransactionInput.tx_out_index, TransactionOutput.value, Address.address)
+            select(
+                TransactionInput.tx_out_index, TransactionOutput.value, Address.address
+            )
             .select_from(
                 TransactionInput.__table__.join(
                     TransactionOutput.__table__,
@@ -330,7 +332,10 @@ class TransactionAnalysisQueries:
             )
             .select_from(
                 Transaction.__table__.join(Block.__table__)
-                .join(TransactionOutput.__table__, Transaction.id_ == TransactionOutput.tx_id)
+                .join(
+                    TransactionOutput.__table__,
+                    Transaction.id_ == TransactionOutput.tx_id,
+                )
                 .join(Address.__table__)
             )
             .where(Address.address == address)
@@ -459,7 +464,8 @@ class TransactionAnalysisQueries:
             )
             .select_from(
                 Transaction.__table__.join(Block.__table__).join(
-                    TransactionOutput.__table__, Transaction.id_ == TransactionOutput.tx_id
+                    TransactionOutput.__table__,
+                    Transaction.id_ == TransactionOutput.tx_id,
                 )
             )
             .group_by(Transaction.id_, Transaction.hash_, Block.time, Block.block_no)

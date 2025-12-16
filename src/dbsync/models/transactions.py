@@ -75,7 +75,9 @@ class TransactionInput(DBSyncBase, table=True):
 
     tx_out_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False
+        ),
         description="Transaction output being spent",
     )
 
@@ -120,7 +122,9 @@ class TransactionOutput(DBSyncBase, table=True):
 
     address_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("address.id"), index=True, nullable=False
+        ),
         description="Address ID reference",
     )
 
@@ -183,7 +187,9 @@ class CollateralTransactionInput(DBSyncBase, table=True):
 
     tx_out_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False
+        ),
         description="Transaction output being used as collateral",
     )
 
@@ -216,7 +222,9 @@ class ReferenceTransactionInput(DBSyncBase, table=True):
 
     tx_out_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("tx_out.id"), index=True, nullable=False
+        ),
         description="Transaction output being referenced",
     )
 
@@ -255,7 +263,9 @@ class CollateralTransactionOutput(DBSyncBase, table=True):
 
     address_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("address.id"), index=True, nullable=False
+        ),
         description="Address ID reference",
     )
 
@@ -312,7 +322,9 @@ class TransactionCbor(DBSyncBase, table=True):
 
     tx_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("tx.id"), unique=True, index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("tx.id"), unique=True, index=True, nullable=False
+        ),
         description="Transaction this CBOR data belongs to",
     )
 
@@ -339,7 +351,9 @@ class Datum(DBSyncBase, table=True):
 
     hash_: bytes | None = Field(
         default=None,
-        sa_column=Column(Hash32Type, unique=True, index=True, name="hash", nullable=False),
+        sa_column=Column(
+            Hash32Type, unique=True, index=True, name="hash", nullable=False
+        ),
         description="Hash of the datum",
     )
 
@@ -405,7 +419,9 @@ class Withdrawal(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False
+        ),
         description="Stake address from which rewards are withdrawn",
     )
 

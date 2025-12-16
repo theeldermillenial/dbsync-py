@@ -19,7 +19,6 @@ from sqlalchemy import (
 )
 from sqlmodel import Field, Relationship
 
-
 from .base import DBSyncBase
 
 __all__ = [
@@ -62,7 +61,9 @@ class StakeRegistration(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False
+        ),
         description="Stake address being registered",
     )
 
@@ -108,7 +109,9 @@ class StakeDeregistration(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False
+        ),
         description="Stake address being deregistered",
     )
 
@@ -154,7 +157,9 @@ class Delegation(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False
+        ),
         description="Stake address delegating",
     )
 
@@ -166,7 +171,9 @@ class Delegation(DBSyncBase, table=True):
 
     pool_hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), index=True, nullable=False
+        ),
         description="Pool being delegated to",
     )
 
@@ -212,7 +219,9 @@ class DelegationVote(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False
+        ),
         description="Stake address delegating voting power",
     )
 
@@ -224,7 +233,9 @@ class DelegationVote(DBSyncBase, table=True):
 
     drep_hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("drep_hash.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("drep_hash.id"), index=True, nullable=False
+        ),
         description="DRep being delegated to for voting",
     )
 
@@ -258,13 +269,17 @@ class EpochStake(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), index=True, nullable=False
+        ),
         description="Stake address with delegated stake",
     )
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), index=True, nullable=False
+        ),
         description="Pool receiving the delegated stake",
     )
 
@@ -322,7 +337,9 @@ class Reward(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), primary_key=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), primary_key=True, nullable=False
+        ),
         description="Stake address receiving the reward",
     )
 
@@ -352,7 +369,9 @@ class Reward(DBSyncBase, table=True):
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), primary_key=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), primary_key=True, nullable=False
+        ),
         description="Pool associated with this reward (for delegation rewards)",
     )
 

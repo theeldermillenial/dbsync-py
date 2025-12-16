@@ -442,11 +442,11 @@ class TestBlockchainModelEdgeCases:
         # Test default value
         tx = Transaction()
         assert tx.treasury_donation == 0
-        
+
         # Test explicit value
         tx_with_donation = Transaction(treasury_donation=1000000)  # 1 ADA
         assert tx_with_donation.treasury_donation == 1000000
-        
+
         # Test that field exists in all Transaction instances
         assert hasattr(tx, "treasury_donation")
 
@@ -458,11 +458,7 @@ class TestBlockchainModelEdgeCases:
 
     def test_address_without_stake_address(self):
         """Test Address without associated stake address."""
-        address = Address(
-            address="addr1test123...",
-            raw=b"\x03" * 29,
-            has_script=False
-        )
+        address = Address(address="addr1test123...", raw=b"\x03" * 29, has_script=False)
         assert address.stake_address_id is None
 
     def test_model_string_representations(self):

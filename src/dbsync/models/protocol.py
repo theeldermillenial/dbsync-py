@@ -615,7 +615,9 @@ class EpochParam(DBSyncBase, table=True):
 
     block_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("block.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("block.id"), nullable=False, index=True
+        ),
         description="Block where these parameters became active",
     )
 
@@ -840,14 +842,19 @@ class RewardRest(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, primary_key=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), nullable=False, primary_key=True
+        ),
         description="Stake address receiving the reward",
     )
 
     type_: str | None = Field(
         default=None,
         sa_column=Column(
-            Enum(*REWARD_TYPES, name="rewardtype"), nullable=False, name="type", primary_key=True
+            Enum(*REWARD_TYPES, name="rewardtype"),
+            nullable=False,
+            name="type",
+            primary_key=True,
         ),
         description="Type of reward rest calculation",
     )

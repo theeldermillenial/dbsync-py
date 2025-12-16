@@ -94,7 +94,9 @@ class PoolUpdate(DBSyncBase, table=True):
 
     hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True
+        ),
         description="Pool hash ID being updated",
     )
 
@@ -118,7 +120,9 @@ class PoolUpdate(DBSyncBase, table=True):
 
     reward_addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True
+        ),
         description="Reward address for the pool",
     )
 
@@ -175,7 +179,9 @@ class PoolRetire(DBSyncBase, table=True):
 
     hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True
+        ),
         description="Pool hash ID being retired",
     )
 
@@ -214,13 +220,17 @@ class PoolOwner(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True
+        ),
         description="Stake address that owns the pool",
     )
 
     pool_update_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_update.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_update.id"), nullable=False, index=True
+        ),
         description="Pool update this ownership applies to",
     )
 
@@ -242,7 +252,9 @@ class PoolRelay(DBSyncBase, table=True):
 
     update_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_update.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_update.id"), nullable=False, index=True
+        ),
         description="Pool update this relay configuration applies to",
     )
 
@@ -294,7 +306,9 @@ class PoolMetadataRef(DBSyncBase, table=True):
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True
+        ),
         description="Pool this metadata refers to",
     )
 
@@ -333,7 +347,9 @@ class OffchainPoolData(DBSyncBase, table=True):
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True
+        ),
         description="Pool this metadata belongs to",
     )
 
@@ -363,7 +379,9 @@ class OffchainPoolData(DBSyncBase, table=True):
 
     pmr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_metadata_ref.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_metadata_ref.id"), nullable=False, index=True
+        ),
         description="Pool metadata reference used for fetching",
     )
 
@@ -384,7 +402,9 @@ class OffchainPoolFetchError(DBSyncBase, table=True):
 
     pool_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True
+        ),
         description="Pool for which metadata fetch failed",
     )
 
@@ -396,7 +416,9 @@ class OffchainPoolFetchError(DBSyncBase, table=True):
 
     pmr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_metadata_ref.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_metadata_ref.id"), nullable=False, index=True
+        ),
         description="Pool metadata reference that failed to fetch",
     )
 
@@ -429,7 +451,9 @@ class ReserveUtxo(DBSyncBase, table=True):
 
     addr_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("stake_address.id"), nullable=False, index=True
+        ),
         description="Stake address receiving from reserves",
     )
 
@@ -468,7 +492,9 @@ class PoolStat(DBSyncBase, table=True):
 
     pool_hash_id: int | None = Field(
         default=None,
-        sa_column=Column(BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True),
+        sa_column=Column(
+            BigInteger, ForeignKey("pool_hash.id"), nullable=False, index=True
+        ),
         description="Pool for which statistics are calculated",
     )
 

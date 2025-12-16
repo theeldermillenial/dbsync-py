@@ -49,9 +49,7 @@ class Address(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
@@ -93,14 +91,14 @@ class StakeAddress(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
     hash_raw: bytes = Field(
-        sa_column=Column(Hash28Type, unique=True, index=True, name="hash_raw", nullable=False),
+        sa_column=Column(
+            Hash28Type, unique=True, index=True, name="hash_raw", nullable=False
+        ),
         description="Stake address hash (raw bytes)",
     )
 
@@ -126,14 +124,14 @@ class SlotLeader(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
     hash_: bytes = Field(
-        sa_column=Column(Hash28Type, unique=True, index=True, name="hash", nullable=False),
+        sa_column=Column(
+            Hash28Type, unique=True, index=True, name="hash", nullable=False
+        ),
         description="Slot leader hash (pool ID)",
     )
 
@@ -159,9 +157,7 @@ class Epoch(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
@@ -211,14 +207,14 @@ class Block(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
     hash_: bytes = Field(
-        sa_column=Column(Hash32Type, unique=True, index=True, name="hash", nullable=False),
+        sa_column=Column(
+            Hash32Type, unique=True, index=True, name="hash", nullable=False
+        ),
         description="Block hash",
     )
 
@@ -253,7 +249,9 @@ class Block(DBSyncBase, table=True):
     )
 
     slot_leader_id: int = Field(
-        sa_column=Column(BigInteger, ForeignKey("slot_leader.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("slot_leader.id"), index=True, nullable=False
+        ),
         description="Slot leader who produced this block",
     )
 
@@ -311,19 +309,21 @@ class Transaction(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
     hash_: bytes = Field(
-        sa_column=Column(Hash32Type, unique=True, index=True, name="hash", nullable=False),
+        sa_column=Column(
+            Hash32Type, unique=True, index=True, name="hash", nullable=False
+        ),
         description="Transaction hash",
     )
 
     block_id: int = Field(
-        sa_column=Column(BigInteger, ForeignKey("block.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("block.id"), index=True, nullable=False
+        ),
         description="Block containing this transaction",
     )
 
@@ -392,9 +392,7 @@ class SchemaVersion(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
@@ -446,9 +444,7 @@ class EpochSyncTime(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
@@ -463,7 +459,9 @@ class EpochSyncTime(DBSyncBase, table=True):
     )
 
     state: str = Field(
-        sa_column=Column(Enum("lagging", "following", name="syncstatetype"), nullable=False),
+        sa_column=Column(
+            Enum("lagging", "following", name="syncstatetype"), nullable=False
+        ),
         description="Sync state description",
     )
 
@@ -478,14 +476,14 @@ class ReverseIndex(DBSyncBase, table=True):
 
     id_: int | None = Field(
         default=None,
-        sa_column=Column(
-            BigInteger, primary_key=True, autoincrement=True, name="id"
-        ),
+        sa_column=Column(BigInteger, primary_key=True, autoincrement=True, name="id"),
         description="Auto-incrementing primary key",
     )
 
     block_id: int = Field(
-        sa_column=Column(BigInteger, ForeignKey("block.id"), index=True, nullable=False),
+        sa_column=Column(
+            BigInteger, ForeignKey("block.id"), index=True, nullable=False
+        ),
         description="Block ID for reverse indexing",
     )
 

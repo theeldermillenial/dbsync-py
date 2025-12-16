@@ -30,37 +30,37 @@ def has_dbsync_env() -> bool:
     # Use the same configuration loading mechanism as DatabaseConfig
     try:
         from dbsync.config import DatabaseConfig
-        
+
         # Try to create a DatabaseConfig (this loads .env file)
         config = DatabaseConfig()
-        
+
         # Check if we have the minimum required configuration
         # DatabaseConfig provides defaults, so check if we have at least username
         if config.username and config.password:
             return True
-            
+
         # Also check if full database URL is available
         if os.getenv("DBSYNC_DATABASE_URL"):
             return True
-            
+
         # As fallback, check environment variables directly
-        host = os.getenv("DBSYNC_HOST")
-        database = os.getenv("DBSYNC_DB_NAME") 
-        username = os.getenv("DBSYNC_USER")
-        password = os.getenv("DBSYNC_PASS")
-        
-        return bool(host and database and username and password)
-        
-    except Exception:
-        # Fallback to original behavior if import fails
-        if os.getenv("DBSYNC_DATABASE_URL"):
-            return True
-            
         host = os.getenv("DBSYNC_HOST")
         database = os.getenv("DBSYNC_DB_NAME")
         username = os.getenv("DBSYNC_USER")
         password = os.getenv("DBSYNC_PASS")
-        
+
+        return bool(host and database and username and password)
+
+    except Exception:
+        # Fallback to original behavior if import fails
+        if os.getenv("DBSYNC_DATABASE_URL"):
+            return True
+
+        host = os.getenv("DBSYNC_HOST")
+        database = os.getenv("DBSYNC_DB_NAME")
+        username = os.getenv("DBSYNC_USER")
+        password = os.getenv("DBSYNC_PASS")
+
         return bool(host and database and username and password)
 
 

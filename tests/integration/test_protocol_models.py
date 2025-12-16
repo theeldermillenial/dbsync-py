@@ -282,7 +282,7 @@ class TestProtocolModelsIntegration:
         # Test BigInteger fields
         big_int_fields = [
             "id",
-            "cost_model_id", 
+            "cost_model_id",
             "registered_tx_id",
         ]
         for field in big_int_fields:
@@ -294,11 +294,11 @@ class TestProtocolModelsIntegration:
         numeric_fields = [
             "max_tx_ex_mem",
             "max_tx_ex_steps",
-            "max_block_ex_mem", 
+            "max_block_ex_mem",
             "max_block_ex_steps",
             "max_val_size",
             "max_block_size",
-            "max_tx_size", 
+            "max_tx_size",
             "max_bh_size",
             "max_epoch",
             "optimal_pool_count",

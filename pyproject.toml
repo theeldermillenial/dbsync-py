@@ -180,7 +180,7 @@ ignore = [
 "tests/**/*.py" = [
     "D", "ANN", "S101", "F841", "B007", "S311", "E501", "S110", "C416", "RUF005", "RUF013",
     "SIM105", "F403", "SIM102", "S112", "S607", "C401", "S608", "E721", "RUF015", "SIM118",
-    "S106", "S105", "B023"
+    "S106", "S105", "B023", "UP032", "UP038"
 ]  # Test files can be less strict
 "__init__.py" = ["F401"]
 "src/dbsync/cli/**/*.py" = ["ANN", "E501", "B904", "E402", "D", "F401"]  # CLI modules can be less strict

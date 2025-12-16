@@ -9,7 +9,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import BigInteger, Column, DateTime, ForeignKey, Integer, String
 from sqlmodel import Field
 
 from .base import DBSyncBase
@@ -42,12 +42,11 @@ class ChainMeta(DBSyncBase, table=True):
 
     network_name: str = Field(
         sa_column=Column(String(64), nullable=False),
-        description="Network name (mainnet, testnet, etc.)"
+        description="Network name (mainnet, testnet, etc.)",
     )
 
     version: str = Field(
-        sa_column=Column(String(32), nullable=False),
-        description="DB Sync version"
+        sa_column=Column(String(32), nullable=False), description="DB Sync version"
     )
 
     def is_mainnet(self) -> bool:

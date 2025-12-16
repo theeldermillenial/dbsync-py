@@ -9,7 +9,6 @@ from __future__ import annotations
 from sqlalchemy import BigInteger, Column, ForeignKey, Integer, Numeric
 from sqlmodel import Field
 
-
 from .base import DBSyncBase
 
 __all__ = [

@@ -4,7 +4,6 @@ Tests asset models with actual database connections and verifies
 read-only behavior and proper SQLAlchemy integration.
 """
 
-import pytest
 from sqlmodel import select
 
 from dbsync.models import (
@@ -316,9 +315,11 @@ class TestAssetModelsAdvancedIntegration:
     def test_cip14_fingerprint_integration(self, dbsync_session):
         """Test CIP14 fingerprint generation with real database data."""
         # Test querying assets and generating fingerprints
-        stmt = select(MultiAsset).where(
-            MultiAsset.policy.is_not(None) & MultiAsset.name.is_not(None)
-        ).limit(3)
+        stmt = (
+            select(MultiAsset)
+            .where(MultiAsset.policy.is_not(None) & MultiAsset.name.is_not(None))
+            .limit(3)
+        )
         results = dbsync_session.exec(stmt).all()
 
         for asset in results:
@@ -387,7 +388,7 @@ class TestAssetModelsAdvancedIntegration:
             assert isinstance(multi_asset_result.policy, bytes)
             assert isinstance(multi_asset_result.name, bytes)
             assert isinstance(multi_asset_result.fingerprint, str)
-            
+
             # Verify policy is 28 bytes (Hash28Type)
             assert len(multi_asset_result.policy) == 28
 
@@ -425,15 +426,22 @@ class TestAssetModelsAdvancedIntegration:
             assert len(empty_name_result.name) == 0
 
         # Test very large quantities
-        large_quantity_stmt = select(MaTxOut).where(
-            MaTxOut.quantity > 1000000000000  # > 1 trillion
-        ).limit(1)
+        large_quantity_stmt = (
+            select(MaTxOut)
+            .where(
+                MaTxOut.quantity > 1000000000000  # > 1 trillion
+            )
+            .limit(1)
+        )
         large_quantity_result = dbsync_session.exec(large_quantity_stmt).first()
 
         if large_quantity_result:
             # Should handle large quantities correctly
             assert large_quantity_result.quantity > 1000000000000
-            assert large_quantity_result.quantity_lovelace == large_quantity_result.quantity
+            assert (
+                large_quantity_result.quantity_lovelace
+                == large_quantity_result.quantity
+            )
 
     def test_comprehensive_asset_ecosystem_integration(self, dbsync_session):
         """Test the complete asset ecosystem integration."""
